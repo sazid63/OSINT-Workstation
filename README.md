@@ -2,7 +2,7 @@
 
 A local-first, open-source OSINT (Open Source Intelligence) workstation for Windows 11. Combines multiple data sources into a unified evidence pipeline with automated collection, normalization, and reporting.
 
-**Version:** v0.1.2-fixes | **Last Updated:** 2026-11-02
+**Version:** v0.1.3-security | **Last Updated:** 2026-11-02
 
 ---
 
@@ -107,7 +107,18 @@ OSINT project/
 
 ---
 
-## 📊 Health Monitoring
+## 🛡️ Security Hardening (v0.1.3-security)
+
+This release hardens the frontend and backend against common web vulnerabilities:
+
+- **XSS prevention** — All user-controlled data rendered in HTML reports is escaped with `html.escape()`. SpiderFoot's `sf.replace_sfurltag()` now sanitizes URLs before inserting them into links. D3 tooltip content in `viz.js` uses `.text()` instead of `.html()`.
+- **CSRF mitigation** — State-changing operations (`sf.deleteScan`, `sf.stopScan`) switched from GET to POST with a JSON body.
+- **Race-condition fix** — `$.inArray()` filter check now correctly uses `!== -1` instead of a truthy check.
+- **Resource management** — Parallel collection tasks in `orchestrator.py` now have a 30-second timeout to prevent hangs.
+- **Storage bug fix** — `core/storage.py` no longer references an undefined variable `p` when writing investigation metadata.
+- **Python 3 syntax fix** — `tools/theHarvester/.../harvestview.py` corrected from Python 2 `except OSError, ValueError` syntax.
+
+See [CHANGELOG.md](CHANGELOG.md) for the full release notes.
 
 Check which sources are working:
 ```powershell
@@ -148,6 +159,7 @@ python osint.py report <investigation-id>    # View report markdown
 
 ## 🔄 Version History
 
+- **v0.1.3-security** (2026-11-02): Security hardening — XSS fixes, CSRF mitigation, timeout guards, storage bug fix, Python 3 syntax fixes
 - **v0.1.2-fixes** (2026-11-02): Fixed file handle leaks, improved resource management
 - **v0.1.1** (2026-11-01): Enhanced health monitoring, added RIPEstat source
 - **v0.1.0** (2026-10-05): Initial release with core pipeline

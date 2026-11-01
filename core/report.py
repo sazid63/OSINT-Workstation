@@ -1,5 +1,5 @@
 """Report generation: Markdown + HTML + JSON. 15-section evidence format."""
-import os, json, datetime
+import os, json, datetime, html as _h
 from core.process import confidence_score
 
 def build_graph_json(inv_path: str, target: str, findings: list, entities: list = None) -> str:
@@ -83,18 +83,21 @@ def write_reports(meta: dict, findings: list, tool_status: dict, entities: list 
     mp = os.path.join(inv_path, 'reports', 'report.md')
     with open(mp, 'w', encoding='utf-8') as fh:
         fh.write('\n'.join(L))
-    rows = '\n'.join(f"<tr><td>{f.get('level')}</td><td>{f['tool']}</td><td>{f['confidence']}</td><td>{f['value']}</td><td>{f.get('evidence_url','')}</td></tr>" for f in findings[:200])
+    rows = '\n'.join(
+        f"<tr><td>{_h.escape(str(f.get('level')))}</td><td>{_h.escape(f['tool'])}</td>"
+        f"<td>{_h.escape(str(f['confidence']))}</td><td>{_h.escape(str(f['value']))}</td>"
+        f"<td>{_h.escape(str(f.get('evidence_url','')))}</td></tr>"
+        for f in findings[:200])
     ai = ''
     aip = os.path.join(inv_path, 'reports', 'analyst.md')
     if os.path.exists(aip):
-        import html as _h
         with open(aip, encoding='utf-8') as f:
             ai_content = f.read()
         ai = f"<h2>AI analyst note (Ollama, labeled — verify against table)</h2><pre>{_h.escape(ai_content)}</pre>"
-    html = f"""<!doctype html><html><head><meta charset=utf-8><title>OSINT {target}</title>
+    html = f"""<!doctype html><html><head><meta charset=utf-8><title>OSINT {_h.escape(str(target))}</title>
 <style>body{{font-family:sans-serif;max-width:1100px;margin:auto;padding:20px}}table{{border-collapse:collapse;width:100%}}td,th{{border:1px solid #ccc;padding:6px;font-size:13px}}pre{{background:#f4f4f4;padding:10px;white-space:pre-wrap}}</style></head>
-<body><h1>OSINT Report — {target}</h1><p>{meta['id']} · {meta['target_type']} · deep={meta.get('deep', False)} · {ts}</p>
-<p>Successful: {', '.join(ok) or '(none)'} | Failed: {', '.join(failed) or '(none)'} | Contradictions: {len(contradictions)}</p>
+<body><h1>OSINT Report — {_h.escape(str(target))}</h1><p>{_h.escape(str(meta['id']))} · {_h.escape(str(meta['target_type']))} · deep={_h.escape(str(meta.get('deep', False)))} · {ts}</p>
+<p>Successful: {_h.escape(str(', '.join(ok) or '(none)'))} | Failed: {_h.escape(str(', '.join(failed) or '(none)'))} | Contradictions: {len(contradictions)}</p>
 <table><tr><th>Level</th><th>Tool</th><th>Conf</th><th>Finding</th><th>Evidence</th></tr>{rows}</table>{ai}
 <p>Full evidence: report.md + findings.json in this folder; raw responses in ../raw/.</p></body></html>"""
     hp = os.path.join(inv_path, 'reports', 'report.html')

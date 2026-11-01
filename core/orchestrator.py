@@ -73,7 +73,8 @@ def investigate(target: str, max_workers=8, deep: bool = False, _extra_queries: 
         for fut in concurrent.futures.as_completed(futs):
             tool = futs[fut]
             try:
-                data = fut.result()
+                # Use a per-tool timeout to avoid hanging tasks (default 30s)
+                data = fut.result(timeout=30)
                 raw[tool] = data
                 if not isinstance(data, dict):
                     # e.g. a bare list from a collector — treat as a value, not a status dict
@@ -87,6 +88,9 @@ def investigate(target: str, max_workers=8, deep: bool = False, _extra_queries: 
                         status[tool] = 'unavailable'
                     else:
                         status[tool] = 'ok'
+            except concurrent.futures.TimeoutError:
+                raw[tool] = {'error': 'timeout'}
+                status[tool] = 'error: timeout'
             except Exception as e:
                 raw[tool] = {'error': str(e)[:300]}
                 status[tool] = f'error: {e}'[:200]
