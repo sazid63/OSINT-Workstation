@@ -30,6 +30,7 @@ services/services.json
 # --- User output: investigations, reports, caches ---
 investigations/
 reports/
+config/source_health.json
 logs/http_cache/
 logs/*.txt
 logs/*.html
