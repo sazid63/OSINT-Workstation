@@ -1,0 +1,23 @@
+workstation:
+  name: "Local OSINT Workstation"
+  version: "1.0.0"
+  base_dir: "C:\\1_SAJID\\OSINT project"
+services:
+  searxng_port: 8888
+  spiderfoot_port: 5001
+  yacy_port: 8090
+orchestrator:
+  max_workers: 8
+  default_timeout: 25
+  user_agent: "OSINT-Workstation/1.0 (authorized local research; contact: local)"
+  verify_ssl: true
+confidence:
+  # scoring weights
+  direct_observation: 0.9
+  multi_source_correlated: 0.75
+  single_source: 0.5
+  inferred: 0.3
+  unverified: 0.15
+storage:
+  investigations_dir: "investigations"
+  reports_dir: "reports"

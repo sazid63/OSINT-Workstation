@@ -1,0 +1,87 @@
+# OSINT Workstation — centralized source registry
+# Add/remove sources here without touching core code.
+# status: enabled | disabled | needs_key
+
+searxng:
+  url: "http://localhost:8888"
+  status: enabled
+  engines: [duckduckgo, bing, brave, mojeek, wikipedia, stackoverflow, github, openstreetmap]
+  timeout: 20
+  note: "Native instance (tools/searxng, managed by core/services.py — no Docker)."
+
+yacy:
+  url: "http://localhost:8090"
+  status: disabled
+  note: "Independent P2P index. Not installed; enable only if you need a non-metasearch fallback."
+
+google_cse:
+  status: needs_key  # set GOOGLE_CSE_KEY + GOOGLE_CSE_CX in secrets/.env to enable
+  note: "Optional supplement only, never sole search mechanism."
+
+spiderfoot:
+  url: "http://localhost:5001"
+  status: enabled
+  default_modules: [sfp_dnsresolve, sfp_whois, sfp_sslcert, sfp_searchengine, sfp_dnscommonsrv, sfp_email, sfp_usernames]
+  note: "Native instance (tools/spiderfoot-src, managed by core/services.py — no Docker)."
+
+public_apis:
+  crtsh:
+    url: "https://crt.sh/?q={target}&output=json"
+    status: enabled
+    key_required: false
+  rdap:
+    url: "https://rdap.org/{type}/{target}"
+    status: enabled
+    key_required: false
+  hackertarget_dns:
+    url: "https://api.hackertarget.com/dnslookup/?q={target}"
+    status: enabled
+    key_required: false
+    rate_limit: "100/day free"
+  hackertarget_geoip:
+    url: "https://api.hackertarget.com/geoip/?q={target}"
+    status: enabled
+    key_required: false
+  ipapi:
+    url: "http://ip-api.com/json/{target}"
+    status: enabled
+    key_required: false
+    rate_limit: "45/min free"
+  shodan:
+    status: needs_key
+    note: "Set SHODAN_API_KEY in secrets/.env. Free tier: 100 queries/mo."
+  censys:
+    status: needs_key
+    note: "Set CENSYS_API_ID + CENSYS_API_SECRET in secrets/.env."
+  github_api:
+    url: "https://api.github.com"
+    status: enabled
+    key_required: false
+    note: "60 req/hr anon, 5000/hr with GITHUB_TOKEN."
+  haveibeenpwned:
+    status: needs_key
+    note: "Set HIBP_API_KEY. Free tier limited; breach check only with key."
+
+native_tools:
+  dns:
+    backend: dnspython
+    status: enabled
+  whois:
+    backend: python-whois
+    status: enabled
+  ipwhois:
+    backend: ipwhois
+    status: enabled
+  nmap:
+    path: "C:\\Program Files (x86)\\Nmap\\nmap.exe"
+    status: enabled
+    note: "Ping/scan only targets you own or are authorized to test."
+  sherlock:
+    status: enabled
+    note: "Username check across ~400 sites. Installed via pip."
+  theharvester:
+    status: enabled
+    note: "Email/subdomain aggregation. Installed via pip."
+  exiftool:
+    status: pending_admin
+    note: "winget package staged; binary not on PATH (installer needs one admin UAC approval). Portable fallback active: Pillow-based EXIF reader in modules/collectors.mod_metadata. Run winget install -e --id OliverBetz.ExifTool in an elevated shell to complete."

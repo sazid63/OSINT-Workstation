@@ -1,0 +1,84 @@
+# ============================================================
+# OSINT Workstation — .gitignore
+# Only the orchestrator app is committed here. Everything that is
+# runtime state, third-party tooling, or user output stays out.
+# ============================================================
+
+# --- Secrets & local configuration (NEVER commit) ---
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+secrets/secrets.env
+secrets/*.db
+
+# --- Third-party tools vendored at runtime (not source) ---
+tools/exiftool-portable/
+tools/searxng/
+tools/spiderfoot-src/
+tools/theHarvester/
+
+# --- Service runtime: venvs, logs, scan DBs, state ---
+services/venv-searxng/
+services/venv-spiderfoot/
+services/logs/
+services/spiderfoot-data/
+services/services.json
+
+# --- User output: investigations, reports, caches ---
+investigations/
+reports/
+logs/http_cache/
+logs/*.txt
+logs/*.html
+logs/*.pdf
+logs/*.py
+logs/*.json
+*.db
+*.sqlite
+*.sqlite3
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+.python-version
+
+# --- Tooling caches ---
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# --- OS / editor cruft ---
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
+*.tmp
+
+# --- DSH ACL diagnostic artifacts (tooling, not source) ---
+.dsh-acl-recovery/
+
+# --- Media & scraped content (screenshots, images, HTML, PDFs) ---
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.webp
+*.pdf
+*.html

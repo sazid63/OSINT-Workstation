@@ -1,0 +1,18 @@
+# SearXNG settings — native Windows instance (no Docker)
+# Loaded via SEARXNG_SETTINGS_PATH by services\start_services.ps1 / core\services.py
+use_default_settings: true
+server:
+  secret_key: "osint-local-secret-change-me-please"
+  bind_address: "127.0.0.1"
+  port: 8888
+  limiter: false
+  image_proxy: false
+search:
+  safe_search: 0
+  autocomplete: ""
+  default_lang: "en"
+  formats:
+    - html
+    - json
+ui:
+  static_use_hash: true

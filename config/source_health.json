@@ -1,0 +1,477 @@
+{
+  "tested_utc": "2026-10-11T09:31:34.876220+00:00",
+  "sources": [
+    {
+      "name": "data.gov.bd",
+      "method": "via_searxng",
+      "enabled": true,
+      "health": "CONFIGURED",
+      "reason": "queried through SearXNG at investigation time; see engine health",
+      "tested_utc": "2026-10-11T09:31:34.876220+00:00"
+    },
+    {
+      "name": "bangladesh.gov.bd",
+      "method": "via_searxng",
+      "enabled": true,
+      "health": "CONFIGURED",
+      "reason": "queried through SearXNG at investigation time; see engine health",
+      "tested_utc": "2026-10-11T09:31:34.876239+00:00"
+    },
+    {
+      "name": "bbs.gov.bd",
+      "method": "via_searxng",
+      "enabled": true,
+      "health": "CONFIGURED",
+      "reason": "queried through SearXNG at investigation time; see engine health",
+      "tested_utc": "2026-10-11T09:31:34.876242+00:00"
+    },
+    {
+      "name": "bb.org.bd",
+      "method": "via_searxng",
+      "enabled": true,
+      "health": "CONFIGURED",
+      "reason": "queried through SearXNG at investigation time; see engine health",
+      "tested_utc": "2026-10-11T09:31:34.876244+00:00"
+    },
+    {
+      "name": "bdlaws.minlaw.gov.bd",
+      "method": "via_searxng",
+      "enabled": true,
+      "health": "CONFIGURED",
+      "reason": "queried through SearXNG at investigation time; see engine health",
+      "tested_utc": "2026-10-11T09:31:34.876246+00:00"
+    },
+    {
+      "name": "dpp.gov.bd",
+      "method": "via_searxng",
+      "enabled": true,
+      "health": "CONFIGURED",
+      "reason": "queried through SearXNG at investigation time; see engine health",
+      "tested_utc": "2026-10-11T09:31:34.876248+00:00"
+    },
+    {
+      "name": "supremecourt.gov.bd",
+      "method": "via_searxng",
+      "enabled": true,
+      "health": "CONFIGURED",
+      "reason": "queried through SearXNG at investigation time; see engine health",
+      "tested_utc": "2026-10-11T09:31:34.876249+00:00"
+    },
+    {
+      "name": "police.gov.bd",
+      "method": "via_searxng",
+      "enabled": true,
+      "health": "CONFIGURED",
+      "reason": "queried through SearXNG at investigation time; see engine health",
+      "tested_utc": "2026-10-11T09:31:34.876251+00:00"
+    },
+    {
+      "name": "eprocure.gov.bd",
+      "method": "via_searxng",
+      "enabled": true,
+      "health": "CONFIGURED",
+      "reason": "queried through SearXNG at investigation time; see engine health",
+      "tested_utc": "2026-10-11T09:31:34.876252+00:00"
+    },
+    {
+      "name": "rjsc.gov.bd",
+      "method": "via_searxng",
+      "enabled": true,
+      "health": "CONFIGURED",
+      "reason": "queried through SearXNG at investigation time; see engine health",
+      "tested_utc": "2026-10-11T09:31:34.876254+00:00"
+    },
+    {
+      "name": "sec.gov.bd",
+      "method": "via_searxng",
+      "enabled": true,
+      "health": "CONFIGURED",
+      "reason": "queried through SearXNG at investigation time; see engine health",
+      "tested_utc": "2026-10-11T09:31:34.876255+00:00"
+    },
+    {
+      "name": "dsebd.org",
+      "method": "via_searxng",
+      "enabled": true,
+      "health": "CONFIGURED",
+      "reason": "queried through SearXNG at investigation time; see engine health",
+      "tested_utc": "2026-10-11T09:31:34.876257+00:00"
+    },
+    {
+      "name": "cse.com.bd",
+      "method": "via_searxng",
+      "enabled": true,
+      "health": "CONFIGURED",
+      "reason": "queried through SearXNG at investigation time; see engine health",
+      "tested_utc": "2026-10-11T09:31:34.876259+00:00"
+    },
+    {
+      "name": "ugc.gov.bd",
+      "method": "via_searxng",
+      "enabled": true,
+      "health": "CONFIGURED",
+      "reason": "queried through SearXNG at investigation time; see engine health",
+      "tested_utc": "2026-10-11T09:31:34.876260+00:00"
+    },
+    {
+      "name": "banbeis.gov.bd",
+      "method": "via_searxng",
+      "enabled": true,
+      "health": "CONFIGURED",
+      "reason": "queried through SearXNG at investigation time; see engine health",
+      "tested_utc": "2026-10-11T09:31:34.876262+00:00"
+    },
+    {
+      "name": "moedu.gov.bd",
+      "method": "via_searxng",
+      "enabled": true,
+      "health": "CONFIGURED",
+      "reason": "queried through SearXNG at investigation time; see engine health",
+      "tested_utc": "2026-10-11T09:31:34.876263+00:00"
+    },
+    {
+      "name": "lged.gov.bd",
+      "method": "via_searxng",
+      "enabled": true,
+      "health": "CONFIGURED",
+      "reason": "queried through SearXNG at investigation time; see engine health",
+      "tested_utc": "2026-10-11T09:31:34.876265+00:00"
+    },
+    {
+      "name": "rajuk.gov.bd",
+      "method": "via_searxng",
+      "enabled": true,
+      "health": "CONFIGURED",
+      "reason": "queried through SearXNG at investigation time; see engine health",
+      "tested_utc": "2026-10-11T09:31:34.876267+00:00"
+    },
+    {
+      "name": "bwdb.gov.bd",
+      "method": "via_searxng",
+      "enabled": true,
+      "health": "CONFIGURED",
+      "reason": "queried through SearXNG at investigation time; see engine health",
+      "tested_utc": "2026-10-11T09:31:34.876268+00:00"
+    },
+    {
+      "name": "bmd.gov.bd",
+      "method": "via_searxng",
+      "enabled": true,
+      "health": "CONFIGURED",
+      "reason": "queried through SearXNG at investigation time; see engine health",
+      "tested_utc": "2026-10-11T09:31:34.876270+00:00"
+    },
+    {
+      "name": "brta.gov.bd",
+      "method": "via_searxng",
+      "enabled": true,
+      "health": "CONFIGURED",
+      "reason": "queried through SearXNG at investigation time; see engine health",
+      "tested_utc": "2026-10-11T09:31:34.876271+00:00"
+    },
+    {
+      "name": "railway.gov.bd",
+      "method": "via_searxng",
+      "enabled": true,
+      "health": "CONFIGURED",
+      "reason": "queried through SearXNG at investigation time; see engine health",
+      "tested_utc": "2026-10-11T09:31:34.876273+00:00"
+    },
+    {
+      "name": "biwta.gov.bd",
+      "method": "via_searxng",
+      "enabled": true,
+      "health": "CONFIGURED",
+      "reason": "queried through SearXNG at investigation time; see engine health",
+      "tested_utc": "2026-10-11T09:31:34.876275+00:00"
+    },
+    {
+      "name": "caab.gov.bd",
+      "method": "via_searxng",
+      "enabled": true,
+      "health": "CONFIGURED",
+      "reason": "queried through SearXNG at investigation time; see engine health",
+      "tested_utc": "2026-10-11T09:31:34.876276+00:00"
+    },
+    {
+      "name": "rhd.gov.bd",
+      "method": "via_searxng",
+      "enabled": true,
+      "health": "CONFIGURED",
+      "reason": "queried through SearXNG at investigation time; see engine health",
+      "tested_utc": "2026-10-11T09:31:34.876277+00:00"
+    },
+    {
+      "name": "cpa.gov.bd",
+      "method": "via_searxng",
+      "enabled": true,
+      "health": "CONFIGURED",
+      "reason": "queried through SearXNG at investigation time; see engine health",
+      "tested_utc": "2026-10-11T09:31:34.876279+00:00"
+    },
+    {
+      "name": "ictd.gov.bd",
+      "method": "via_searxng",
+      "enabled": true,
+      "health": "CONFIGURED",
+      "reason": "queried through SearXNG at investigation time; see engine health",
+      "tested_utc": "2026-10-11T09:31:34.876280+00:00"
+    },
+    {
+      "name": "bcc.gov.bd",
+      "method": "via_searxng",
+      "enabled": true,
+      "health": "CONFIGURED",
+      "reason": "queried through SearXNG at investigation time; see engine health",
+      "tested_utc": "2026-10-11T09:31:34.876282+00:00"
+    },
+    {
+      "name": "osm.org",
+      "method": "auto_http",
+      "enabled": true,
+      "health": "WORKING",
+      "reason": "",
+      "tested_utc": "2026-10-11T09:31:36.028404+00:00"
+    },
+    {
+      "name": "github.com",
+      "method": "auto_http",
+      "enabled": true,
+      "health": "WORKING",
+      "reason": "",
+      "tested_utc": "2026-10-11T09:31:36.516847+00:00"
+    },
+    {
+      "name": "gitlab.com",
+      "method": "auto_http",
+      "enabled": true,
+      "health": "WORKING",
+      "reason": "",
+      "tested_utc": "2026-10-11T09:31:37.027210+00:00"
+    },
+    {
+      "name": "crt.sh",
+      "method": "auto_http",
+      "enabled": true,
+      "health": "TEMPORARILY_UNAVAILABLE",
+      "reason": "status=http_502 err=",
+      "tested_utc": "2026-10-11T09:31:42.531712+00:00"
+    },
+    {
+      "name": "urlscan.io",
+      "method": "auto_http",
+      "enabled": true,
+      "health": "WORKING",
+      "reason": "",
+      "tested_utc": "2026-10-11T09:31:43.649370+00:00"
+    },
+    {
+      "name": "virustotal.com",
+      "method": "api_key",
+      "enabled": false,
+      "health": "KEY_REQUIRED",
+      "reason": "disabled in registry (login-walled or key-gated)",
+      "tested_utc": "2026-10-11T09:31:43.649452+00:00"
+    },
+    {
+      "name": "ipinfo.io",
+      "method": "auto_http",
+      "enabled": true,
+      "health": "WORKING",
+      "reason": "",
+      "tested_utc": "2026-10-11T09:31:44.152952+00:00"
+    },
+    {
+      "name": "domaintools.com",
+      "method": "manual",
+      "enabled": false,
+      "health": "KEY_REQUIRED",
+      "reason": "disabled in registry (login-walled or key-gated)",
+      "tested_utc": "2026-10-11T09:31:44.152965+00:00"
+    },
+    {
+      "name": "bdjobs.com",
+      "method": "manual",
+      "enabled": false,
+      "health": "CONFIGURED",
+      "reason": "disabled in registry (login-walled or key-gated)",
+      "tested_utc": "2026-10-11T09:31:44.152968+00:00"
+    },
+    {
+      "name": "upwork.com",
+      "method": "manual",
+      "enabled": false,
+      "health": "CONFIGURED",
+      "reason": "disabled in registry (login-walled or key-gated)",
+      "tested_utc": "2026-10-11T09:31:44.152971+00:00"
+    },
+    {
+      "name": "linkedin.com",
+      "method": "manual",
+      "enabled": false,
+      "health": "CONFIGURED",
+      "reason": "disabled in registry (login-walled or key-gated)",
+      "tested_utc": "2026-10-11T09:31:44.152972+00:00"
+    },
+    {
+      "name": "facebook.com",
+      "method": "manual",
+      "enabled": false,
+      "health": "CONFIGURED",
+      "reason": "disabled in registry (login-walled or key-gated)",
+      "tested_utc": "2026-10-11T09:31:44.152974+00:00"
+    },
+    {
+      "name": "instagram.com",
+      "method": "manual",
+      "enabled": false,
+      "health": "CONFIGURED",
+      "reason": "disabled in registry (login-walled or key-gated)",
+      "tested_utc": "2026-10-11T09:31:44.152976+00:00"
+    },
+    {
+      "name": "reddit.com",
+      "method": "via_searxng",
+      "enabled": true,
+      "health": "CONFIGURED",
+      "reason": "queried through SearXNG at investigation time; see engine health",
+      "tested_utc": "2026-10-11T09:31:44.152979+00:00"
+    },
+    {
+      "name": "x.com",
+      "method": "manual",
+      "enabled": false,
+      "health": "CONFIGURED",
+      "reason": "disabled in registry (login-walled or key-gated)",
+      "tested_utc": "2026-10-11T09:31:44.152980+00:00"
+    },
+    {
+      "name": "steamcommunity.com",
+      "method": "auto_http",
+      "enabled": true,
+      "health": "WORKING",
+      "reason": "",
+      "tested_utc": "2026-10-11T09:31:44.702539+00:00"
+    },
+    {
+      "name": "steampowered.com",
+      "method": "via_searxng",
+      "enabled": true,
+      "health": "CONFIGURED",
+      "reason": "queried through SearXNG at investigation time; see engine health",
+      "tested_utc": "2026-10-11T09:31:44.702551+00:00"
+    },
+    {
+      "name": "ubisoft.com",
+      "method": "manual",
+      "enabled": false,
+      "health": "CONFIGURED",
+      "reason": "disabled in registry (login-walled or key-gated)",
+      "tested_utc": "2026-10-11T09:31:44.702554+00:00"
+    },
+    {
+      "name": "epicgames.com",
+      "method": "manual",
+      "enabled": false,
+      "health": "CONFIGURED",
+      "reason": "disabled in registry (login-walled or key-gated)",
+      "tested_utc": "2026-10-11T09:31:44.702557+00:00"
+    },
+    {
+      "name": "riotgames.com",
+      "method": "manual",
+      "enabled": false,
+      "health": "CONFIGURED",
+      "reason": "disabled in registry (login-walled or key-gated)",
+      "tested_utc": "2026-10-11T09:31:44.702559+00:00"
+    },
+    {
+      "name": "stat.ripe.net",
+      "method": "auto_http",
+      "enabled": true,
+      "health": "WORKING",
+      "reason": "",
+      "tested_utc": "2026-10-11T09:31:45.346819+00:00"
+    },
+    {
+      "name": "wikidata.org",
+      "method": "auto_http",
+      "enabled": true,
+      "health": "WORKING",
+      "reason": "",
+      "tested_utc": "2026-10-11T09:31:46.052202+00:00"
+    }
+  ],
+  "searxng": {
+    "status": "ok",
+    "engines": [
+      {
+        "engine": "duckduckgo",
+        "working": true,
+        "results": 10,
+        "note": ""
+      },
+      {
+        "engine": "bing",
+        "working": false,
+        "results": 0,
+        "note": "status=ok 200"
+      },
+      {
+        "engine": "brave",
+        "working": false,
+        "results": 0,
+        "note": "status=ok 200"
+      },
+      {
+        "engine": "mojeek",
+        "working": true,
+        "results": 26,
+        "note": ""
+      },
+      {
+        "engine": "wikipedia",
+        "working": true,
+        "results": 1,
+        "note": ""
+      },
+      {
+        "engine": "github",
+        "working": true,
+        "results": 30,
+        "note": ""
+      },
+      {
+        "engine": "stackoverflow",
+        "working": true,
+        "results": 10,
+        "note": ""
+      },
+      {
+        "engine": "openstreetmap",
+        "working": true,
+        "results": 4,
+        "note": ""
+      },
+      {
+        "engine": "reddit",
+        "working": true,
+        "results": 27,
+        "note": ""
+      }
+    ],
+    "working_engines": [
+      "duckduckgo",
+      "mojeek",
+      "wikipedia",
+      "github",
+      "stackoverflow",
+      "openstreetmap",
+      "reddit"
+    ]
+  },
+  "spiderfoot": {
+    "status": "ok",
+    "http": 200
+  }
+}
