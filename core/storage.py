@@ -27,7 +27,8 @@ def create_investigation(target: str, target_type: str, plan: list) -> dict:
         'path': final,
     }
     with open(os.path.join(final, 'metadata', 'meta.json'), 'w') as f:
-        json.dump(meta, f, indent=2)
+        with open(p, 'w', encoding='utf-8') as f:
+            json.dump(meta, f, indent=2)
     return meta
 
 def inv_path(inv_id: str) -> str:

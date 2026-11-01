@@ -37,9 +37,10 @@ def get(url: str, params=None, timeout=20, use_cache=True, cache_ttl=3600):
     cp = os.path.join(_CACHE, key + '.json')
     if use_cache and os.path.exists(cp):
         try:
-            c = json.load(open(cp))
-            if time.time() - c['ts'] < cache_ttl:
-                return c['status'], c['body'], {'cached': True, 'url': url}
+            with open(cp, encoding='utf-8') as f:
+                c = json.load(f)
+                if time.time() - c['ts'] < cache_ttl:
+                    return c['status'], c['body'], {'cached': True, 'url': url}
         except Exception:
             pass
     _pace(urlparse(url).netloc)
@@ -51,8 +52,9 @@ def get(url: str, params=None, timeout=20, use_cache=True, cache_ttl=3600):
         if use_cache and r.status_code == 200:
             try:
                 os.makedirs(_CACHE, exist_ok=True)
-                json.dump({'ts': time.time(), 'status': 'ok', 'body': body if isinstance(body, (dict, list)) else body[:8000]},
-                          open(cp, 'w'), default=str)
+                with open(cp, 'w', encoding='utf-8') as f:
+                    json.dump({'ts': time.time(), 'status': 'ok', 'body': body if isinstance(body, (dict, list)) else body[:8000]},
+                              f, default=str)
             except Exception:
                 pass
         return ('ok' if r.status_code < 400 else f'http_{r.status_code}'), body, meta

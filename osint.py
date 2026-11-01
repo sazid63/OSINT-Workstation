@@ -45,7 +45,8 @@ def cmd_investigate(target, deep=False, ai=False):
 def cmd_search(query):
     import yaml
     from core.clients import searxng_search
-    sx = yaml.safe_load(open(f'{BASE}/config/sources.yaml'))['searxng']['url']
+    with open(f'{BASE}/config/sources.yaml', encoding='utf-8') as f:
+        sx = yaml.safe_load(f)['searxng']['url']
     r = searxng_search(sx, query)
     print(f"status={r['status']} results={len(r['results'])}")
     for x in r['results'][:15]:
@@ -54,22 +55,25 @@ def cmd_search(query):
 def cmd_status():
     import yaml
     from core.clients import searxng_search, spiderfoot_status
-    s = yaml.safe_load(open(f'{BASE}/config/sources.yaml'))
+    with open(f'{BASE}/config/sources.yaml', encoding='utf-8') as f:
+        s = yaml.safe_load(f)
     print('searxng:', searxng_search(s['searxng']['url'], 'test', count=1)['status'])
     print('spiderfoot:', spiderfoot_status(s['spiderfoot']['url']))
     print('native: dns/whois/ipwhois OK (import-tested at startup)')
 
 def cmd_tools():
     import yaml
-    print(yaml.safe_dump(yaml.safe_load(open(f'{BASE}/config/sources.yaml'))['native_tools'], default_flow_style=False))
+    with open(f'{BASE}/config/sources.yaml', encoding='utf-8') as f:
+        print(yaml.safe_dump(yaml.safe_load(f)['native_tools'], default_flow_style=False))
 
 def cmd_sources():
     import yaml
-    reg = yaml.safe_load(open(f'{BASE}/config/source_registry.yaml'))['registry']
+    with open(f'{BASE}/config/source_registry.yaml', encoding='utf-8') as f:
+        reg = yaml.safe_load(f)['registry']
     health = {}
     try:
-        health = {s['name']: s for s in
-                  __import__('json').load(open(f'{BASE}/config/source_health.json'))['sources']}
+        with open(f'{BASE}/config/source_health.json', encoding='utf-8') as hf:
+            health = {s['name']: s for s in json.load(hf)['sources']}
     except Exception:
         pass
     print(f"{'SOURCE':24} {'METHOD':13} {'EN':3} {'HEALTH':24} NOTE")
@@ -108,7 +112,6 @@ def cmd_services(action='status'):
     print(json.dumps(fn(), indent=2))
 
 def quick(tool, target):
-    sys.path.insert(0, BASE)
     from modules.collectors import mod_dns, mod_whois_rdap, mod_cert, mod_ip, mod_url, mod_email, mod_username, mod_metadata, mod_theharvester
     from modules.collectors import mod_urlscan, mod_ipinfo, mod_ripestat, mod_wikidata, mod_nominatim, mod_steam
     if tool == 'metadata':
@@ -152,11 +155,12 @@ def menu():
         elif c == '13':
             iid = input('investigation id: ').strip()
             p = f'{BASE}/investigations/{iid}/graph/graph.json'
-            print(open(p).read()[:3000] if os.path.exists(p) else '(no graph yet)')
+            with open(p, encoding='utf-8') as f:
+                print(f.read()[:3000] if os.path.exists(p) else '(no graph yet)')
         elif c == '14':
             for d in sorted(os.listdir(f'{BASE}/investigations'))[-5:]:
                 print(d, '->', f'investigations/{d}/reports/report.md')
-        elif c == '15': print(open(f'{BASE}/config/settings.yaml').read())
+        elif c == '15': print(open(f'{BASE}/config/settings.yaml', encoding='utf-8').read())
         elif c == '16': cmd_services('status')
         elif c.startswith('investigate '): cmd_investigate(c.split(None, 1)[1])
         elif c.startswith('search '): cmd_search(c.split(None, 1)[1])

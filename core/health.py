@@ -6,7 +6,8 @@ REG = os.path.join(BASE, 'config', 'source_registry.yaml')
 HEALTH_JSON = os.path.join(BASE, 'config', 'source_health.json')
 
 def _load():
-    return yaml.safe_load(open(REG))['registry']
+    with open(REG, encoding='utf-8') as f:
+        return yaml.safe_load(f)['registry']
 
 def probe_auto(entry: dict, timeout=20) -> dict:
     """Lightweight keyless probe per source. Returns health dict."""
@@ -102,7 +103,8 @@ def run_health(save=True) -> dict:
     # service-level checks
     from core.clients import searxng_search, spiderfoot_status
     import yaml as _y
-    svc = _y.safe_load(open(os.path.join(BASE, 'config', 'sources.yaml')))
+    with open(os.path.join(BASE, 'config', 'sources.yaml'), encoding='utf-8') as f:
+        svc = _y.safe_load(f)
     sx = searxng_search(svc['searxng']['url'], 'healthcheck', count=1)
     engines = searxng_engines(svc['searxng']['url']) if sx['status'] == 'ok' else []
     report = {'tested_utc': results[0]['tested_utc'] if results else '',
@@ -111,5 +113,6 @@ def run_health(save=True) -> dict:
                           'working_engines': [e['engine'] for e in engines if e['working']]},
               'spiderfoot': spiderfoot_status(svc['spiderfoot']['url'])}
     if save:
-        json.dump(report, open(HEALTH_JSON, 'w'), indent=2)
+        with open(HEALTH_JSON, 'w', encoding='utf-8') as f:
+            json.dump(report, f, indent=2)
     return report

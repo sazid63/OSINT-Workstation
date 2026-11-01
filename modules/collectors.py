@@ -1,9 +1,14 @@
 """Collectors: DNS, WHOIS/RDAP, certs (crt.sh), IP, URL. All free, no keys."""
-import socket, ssl, datetime, re
+import socket, ssl, datetime, re, os
 import requests
 
 UA = {'User-Agent': 'OSINT-Workstation/1.0 (authorized local research)'}
-T = 20
+# Configurable timeouts (can be overridden via env vars)
+DEFAULT_TIMEOUT = int(os.environ.get('OSINT_HTTP_TIMEOUT', '20'))
+DNS_LIFETIME = int(os.environ.get('OSINT_DNS_LIFETIME', '10'))
+CERT_TIMEOUT = int(os.environ.get('OSINT_CERT_TIMEOUT', '10'))
+SUBDOMAIN_LIMIT = int(os.environ.get('OSINT_SUBDOMAIN_LIMIT', '200'))
+HARVESTER_LIMIT = int(os.environ.get('OSINT_HARVESTER_LIMIT', '50'))
 
 def mod_dns(target: str):
     import dns.resolver
@@ -13,7 +18,7 @@ def mod_dns(target: str):
     out['host'] = host
     for rtype in ['A', 'AAAA', 'MX', 'NS', 'TXT', 'SOA', 'CNAME']:
         try:
-            ans = dns.resolver.resolve(host, rtype, lifetime=10)
+            ans = dns.resolver.resolve(host, rtype, lifetime=DNS_LIFETIME)
             out['records'][rtype] = sorted(str(r).strip('"') for r in ans)
         except Exception as e:
             out['errors'][rtype] = str(e)[:120]
@@ -39,7 +44,7 @@ def mod_whois_rdap(target: str):
     for kind, url in [('domain', f'https://rdap.org/domain/{domain}'),
                       ('ip', None)]:
         try:
-            r = requests.get(url, headers=UA, timeout=T)
+            r = requests.get(url, headers=UA, timeout=DEFAULT_TIMEOUT)
             if r.status_code == 200:
                 out[f'rdap_{kind}'] = r.json()
             else:
@@ -56,7 +61,7 @@ def mod_cert(target: str):
     apex = '.'.join(base)
     out = {'target': target, 'apex': apex, 'subdomains': [], 'live_cert': None}
     try:
-        r = requests.get(f'https://crt.sh/?q=%25.{apex}&output=json', headers=UA, timeout=T)
+        r = requests.get(f'https://crt.sh/?q=%25.{apex}&output=json', headers=UA, timeout=DEFAULT_TIMEOUT)
         if r.status_code == 200:
             seen = set()
             for e in r.json():
@@ -64,7 +69,7 @@ def mod_cert(target: str):
                     n = n.strip().lower()
                     if n and '*' not in n:
                         seen.add(n)
-            out['subdomains'] = sorted(seen)[:200]
+            out['subdomains'] = sorted(seen)[:SUBDOMAIN_LIMIT]
         else:
             out['crtsh_http'] = r.status_code
             raise RuntimeError(f'crt.sh http {r.status_code}')
@@ -72,9 +77,9 @@ def mod_cert(target: str):
         out['crtsh_error'] = str(e)[:300]
         # fallback: HackerTarget hostsearch (free, no key, same data class)
         try:
-            h = requests.get(f'https://api.hackertarget.com/hostsearch/?q={apex}', headers=UA, timeout=T)
+            h = requests.get(f'https://api.hackertarget.com/hostsearch/?q={apex}', headers=UA, timeout=DEFAULT_TIMEOUT)
             if h.status_code == 200 and h.text.strip() and 'error' not in h.text.lower()[:60]:
-                out['subdomains'] = sorted({l.split(',')[0].strip().lower() for l in h.text.splitlines() if l.strip()})[:200]
+                out['subdomains'] = sorted({l.split(',')[0].strip().lower() for l in h.text.splitlines() if l.strip()})[:SUBDOMAIN_LIMIT]
                 out['subdomain_source'] = 'hackertarget hostsearch (fallback)'
             else:
                 out['hostsearch_http'] = h.status_code
@@ -100,7 +105,7 @@ def mod_ip(target: str):
     for name, url in [('hackertarget_geoip', f'https://api.hackertarget.com/geoip/?q={target}'),
                       ('ipapi', f'http://ip-api.com/json/{target}?fields=status,country,regionName,city,isp,org,as,query')]:
         try:
-            r = requests.get(url, headers=UA, timeout=T)
+            r = requests.get(url, headers=UA, timeout=DEFAULT_TIMEOUT)
             out[name] = r.text[:2000] if 'hackertarget' in name else r.json()
         except Exception as e:
             out[name + '_error'] = str(e)[:200]
@@ -117,7 +122,7 @@ def mod_url(target: str):
     url = target if re.match(r'^https?://', target, re.I) else 'https://' + target
     out = {'url': url, 'checks': {}}
     try:
-        r = requests.get(url, headers=UA, timeout=T, allow_redirects=True)
+        r = requests.get(url, headers=UA, timeout=DEFAULT_TIMEOUT, allow_redirects=True)
         out['checks'] = {'http': r.status_code, 'final_url': r.url,
                          'server': r.headers.get('Server'), 'powered_by': r.headers.get('X-Powered-By'),
                          'title': (re.search(r'<title>(.*?)</title>', r.text, re.I | re.S).group(1).strip()[:200]
@@ -139,7 +144,7 @@ def mod_email(target: str):
     try:
         r = requests.get('https://api.github.com/search/commits',
                          params={'q': target}, headers={**UA, 'Accept': 'application/vnd.github.cloak-preview'},
-                         timeout=T)
+                         timeout=DEFAULT_TIMEOUT)
         if r.status_code == 200:
             j = r.json()
             out['github_commits'] = [{'repo': (c.get('repository') or {}).get('full_name'),
@@ -162,7 +167,7 @@ def mod_username(target: str):
     for site, url in [('github', f'https://api.github.com/users/{u}'),
                       ('gitlab', f'https://gitlab.com/api/v4/users?username={u}')]:
         try:
-            r = requests.get(url, headers=_headers if site == 'github' else UA, timeout=T)
+            r = requests.get(url, headers=_headers if site == 'github' else UA, timeout=DEFAULT_TIMEOUT)
             if r.status_code == 200:
                 j = r.json()
                 if site == 'github' and isinstance(j, dict) and j.get('login'):
@@ -317,7 +322,7 @@ def mod_steam(username: str):
             out.setdefault('checked', {})[kind] = meta.get('http', st)
     return out
 
-def mod_theharvester(target: str, limit: int = 50):
+def mod_theharvester(target: str, limit: int = HARVESTER_LIMIT):
     """Best-effort theHarvester passive run with keyless sources (crtsh, hackertarget...). Non-fatal."""
     import shutil, subprocess, json as _j, os as _os
     out = {'target': target}
@@ -331,8 +336,8 @@ def mod_theharvester(target: str, limit: int = 50):
         r = subprocess.run(cmd, capture_output=True, text=True, timeout=240)
         txt = (r.stdout or '') + (r.stderr or '')
         import re as _re
-        out['emails'] = sorted(set(_re.findall(r'[\w.+-]+@' + _re.escape(target), txt)))[:100]
-        hosts = sorted(set(_re.findall(r'(?:[a-z0-9-]+\.)+' + _re.escape(target), txt.lower())))[:200]
+        out['emails'] = sorted(set(_re.findall(r'[\w.+-]+@' + _re.escape(target), txt)))[:SUBDOMAIN_LIMIT]
+        hosts = sorted(set(_re.findall(r'(?:[a-z0-9-]+\.)+' + _re.escape(target), txt.lower())))[:SUBDOMAIN_LIMIT]
         out['hosts'] = hosts
         out['raw_tail'] = txt[-1500:]
     except Exception as e:

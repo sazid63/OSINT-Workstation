@@ -153,7 +153,8 @@ def investigate(target: str, max_workers=8, deep: bool = False, _extra_queries: 
     for r, _, fs in os.walk(os.path.join(meta['path'], 'raw')):
         for fn in fs:
             p = os.path.join(r, fn)
-            h = hashlib.sha256(open(p, 'rb').read()).hexdigest()
+            with open(p, 'rb') as f:
+                h = hashlib.sha256(f.read()).hexdigest()
             manifest.append({'file': os.path.relpath(p, meta['path']), 'sha256': h})
     with open(os.path.join(meta['path'], 'logs', 'manifest.json'), 'w') as f:
         import json; json.dump(manifest, f, indent=2)

@@ -48,14 +48,16 @@ SERVICES = {
 
 def _load_state():
     try:
-        return json.load(open(STATE_FILE))
+        with open(STATE_FILE, encoding='utf-8') as f:
+            return json.load(f)
     except Exception:
         return {}
 
 
 def _save_state(state):
     os.makedirs(SERVICES_DIR, exist_ok=True)
-    json.dump(state, open(STATE_FILE, 'w'), indent=2)
+    with open(STATE_FILE, 'w', encoding='utf-8') as f:
+        json.dump(state, f, indent=2)
 
 
 def _alive(pid):

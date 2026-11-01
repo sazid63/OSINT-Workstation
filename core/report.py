@@ -88,7 +88,9 @@ def write_reports(meta: dict, findings: list, tool_status: dict, entities: list 
     aip = os.path.join(inv_path, 'reports', 'analyst.md')
     if os.path.exists(aip):
         import html as _h
-        ai = f"<h2>AI analyst note (Ollama, labeled — verify against table)</h2><pre>{_h.escape(open(aip, encoding='utf-8').read())}</pre>"
+        with open(aip, encoding='utf-8') as f:
+            ai_content = f.read()
+        ai = f"<h2>AI analyst note (Ollama, labeled — verify against table)</h2><pre>{_h.escape(ai_content)}</pre>"
     html = f"""<!doctype html><html><head><meta charset=utf-8><title>OSINT {target}</title>
 <style>body{{font-family:sans-serif;max-width:1100px;margin:auto;padding:20px}}table{{border-collapse:collapse;width:100%}}td,th{{border:1px solid #ccc;padding:6px;font-size:13px}}pre{{background:#f4f4f4;padding:10px;white-space:pre-wrap}}</style></head>
 <body><h1>OSINT Report — {target}</h1><p>{meta['id']} · {meta['target_type']} · deep={meta.get('deep', False)} · {ts}</p>
