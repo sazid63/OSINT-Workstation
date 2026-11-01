@@ -1,36 +1,184 @@
 # OSINT Workstation
-Local-first, free/open-source OSINT environment (Windows 11).
 
-## Architecture
-`TARGET → detect → plan → parallel collect → normalize → dedupe → correlate → confidence → graph → report`
+A local-first, open-source OSINT (Open Source Intelligence) workstation for Windows 11. Combines multiple data sources into a unified evidence pipeline with automated collection, normalization, and reporting.
 
-| Layer | Choice | Why |
-|---|---|---|
-| Metasearch | SearXNG (native, :8888, `tools/searxng`) | self-hosted, multi-engine, no key |
-| P2P index (optional) | YaCy (not installed, :8090) | independent index; OFF by default (heavy, low ROI) |
-| Investigation engine | SpiderFoot (native, :5001, `tools/spiderfoot-src`) | complements native orchestrator |
-| Native collectors | dnspython, python-whois, RDAP, crt.sh, HackerTarget, ip-api, GitHub API | free, no keys, unique sources |
-| Username | Sherlock (pip) | 400+ sites — unique coverage |
-| Email/subdomain agg | theHarvester (pip) | unique aggregation |
-| Metadata | ExifTool (winget) | no Python equivalent |
-| NOT installed | YaCy default, Holehe (dead 2023), Amass/Subfinder overlap (crt.sh+DNS covers), Censys/Shodan (key-gated, slots in sources.yaml) | avoid junk drawer |
+**Version:** v0.1.2-fixes | **Last Updated:** 2026-11-02
 
-**No Docker.** SearXNG and SpiderFoot run as native Windows processes from dedicated
-venvs in `services/` (SearXNG: Python 3.12, SpiderFoot: Python 3.11). Service state
-lives in `services/services.json`, logs in `services/logs/`, SpiderFoot scan DB in
-`services/spiderfoot-data/`. Docker containers, images, compose file, and volumes
-were removed 2026-10-11.
+---
 
-## Quick start
-```bat
-pip install -r requirements.txt
-python osint.py services up      :: start SearXNG + SpiderFoot (native, no Docker)
-python osint.py status
-python osint.py investigate example.com
-osint.bat   :: interactive terminal
-python osint.py services down    :: stop services when done
+## 🏗️ Architecture
+
+```
+TARGET → detect → plan → parallel collect → normalize → dedupe → correlate → confidence → graph → report
 ```
 
-## Config
-- `config/sources.yaml` — add/remove sources without code changes
-- `secrets/.env` (from `.env.example`) — optional keys only
+| Layer | Tool | Purpose |
+|-------|------|---------|
+| Metasearch | SearXNG (:8888) | Multi-engine aggregation, no API keys |
+| Engine | SpiderFoot (:5001) | Automated reconnaissance framework |
+| DNS/WHOIS | Native Python | Direct resolver queries, free tier APIs |
+| Certificates | crt.sh + TLS handshake | Certificate transparency & live verification |
+| IP Intelligence | ipinfo.io, RIPEstat | Geo-IP and ASN lookup |
+| Username | Sherlock, GitLab/GitHub APIs | Cross-platform handle detection |
+| Metadata | ExifTool + Pillow | File EXIF extraction (local only) |
+
+---
+
+## 🚀 Quick Start
+
+```powershell
+# Install dependencies
+pip install -r requirements.txt
+
+# Start services (SearXNG + SpiderFoot)
+python osint.py services up
+
+# Run investigation
+python osint.py investigate example.com
+
+# Check status
+python osint.py status
+
+# Interactive terminal
+osint.bat
+```
+
+**Stop services when done:**
+```powershell
+python osint.py services down
+```
+
+---
+
+## 📁 Project Structure
+
+```
+OSINT project/
+├── core/               # Main application logic
+│   ├── analyst.py      # Local AI analysis (Ollama)
+│   ├── clients.py      # HTTP clients for SearXNG/SpiderFoot
+│   ├── detect.py       # Target type detection & planning
+│   ├── health.py       # Source health monitoring
+│   ├── http.py         # Rate-limited HTTP with caching
+│   ├── orchestrator.py # Investigation pipeline
+│   ├── process.py      # Normalization & correlation
+│   ├── report.py       # Report generation
+│   ├── services.py     # Service manager (native, no Docker)
+│   └── storage.py      # Investigation storage
+├── modules/
+│   └── collectors.py   # Individual data collectors
+├── config/
+│   ├── sources.yaml    # Source configuration
+│   └── source_registry.yaml  # 50+ source registry
+├── tools/
+│   ├── searxng/        # Self-hosted SearXNG instance
+│   ├── spiderfoot-src/ # SpiderFoot framework
+│   └── theHarvester/   # Email/subdomain aggregation
+├── secrets/
+│   └── .env.example    # API key template
+└── osint.py           # Main CLI entry point
+```
+
+---
+
+## 🔧 Configuration
+
+### Sources
+- `config/sources.yaml` — Enable/disable sources, configure timeouts
+- `secrets/.env` — Copy from `.env.example`, add optional API keys
+
+### Environment Variables
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `OSINT_HTTP_TIMEOUT` | 20 | HTTP request timeout (seconds) |
+| `OSINT_DNS_LIFETIME` | 10 | DNS query lifetime (seconds) |
+| `OSINT_SUBDOMAIN_LIMIT` | 200 | Max subdomains to collect |
+| `OSINT_HARVESTER_LIMIT` | 50 | Max results from theHarvester |
+
+---
+
+## 🔐 Security & Privacy
+
+- **Local-first**: All investigations stored locally in `investigations/`
+- **No cloud uploads**: Data never leaves your machine
+- **Polite crawling**: Built-in rate limiting (1 req/s per host)
+- **Keyless by design**: Works without API keys; optional keys for enhanced coverage
+- **Authorization only**: Use only on targets you're authorized to investigate
+
+---
+
+## 📊 Health Monitoring
+
+Check which sources are working:
+```powershell
+python osint.py health
+```
+
+View source registry:
+```powershell
+python osint.py sources
+```
+
+---
+
+## 🛠️ CLI Commands
+
+```powershell
+# Investigation
+python osint.py investigate <target>          # Standard investigation
+python osint.py investigate --deep <target>   # Deep analysis (includes chaining)
+python osint.py investigate --ai <target>     # With AI analysis (requires Ollama)
+
+# Services
+python osint.py services up|down|status       # Manage SearXNG/SpiderFoot
+python osint.py services start <name>         # Start single service
+
+# Tools
+python osint.py dns|ip|email|username <target>  # Quick single-source checks
+python osint.py search <query>               # SearXNG search
+python osint.py metadata <file>              # Local file EXIF analysis
+python osint.py harvester <domain>           # Passive email/host aggregation
+
+# Reports
+python osint.py graph <investigation-id>     # View investigation graph
+python osint.py report <investigation-id>    # View report markdown
+```
+
+---
+
+## 🔄 Version History
+
+- **v0.1.2-fixes** (2026-11-02): Fixed file handle leaks, improved resource management
+- **v0.1.1** (2026-11-01): Enhanced health monitoring, added RIPEstat source
+- **v0.1.0** (2026-10-05): Initial release with core pipeline
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/new-collector`)
+3. Commit changes (`git commit -am 'Add new OSINT collector'`)
+4. Push to branch (`git push origin feature/new-collector`)
+5. Open a Pull Request
+
+---
+
+## ⚠️ Legal & Ethical Use
+
+This tool is for **authorized research only**. The developer assumes no responsibility for misuse. Users must:
+- Have explicit permission to investigate targets
+- Comply with applicable laws and regulations
+- Respect rate limits and robots.txt guidelines
+- Never use for unauthorized access or harassment
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see [LICENSE](LICENSE) for details.
+
+---
+
+**Built with**: Python 3.12, dnspython, requests, Jinja2, SearXNG, SpiderFoot, theHarvester  
+**Platform**: Windows 11 (native processes, no Docker required)
