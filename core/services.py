@@ -144,15 +144,16 @@ def start(name, wait=45):
         return {'service': name, 'status': 'error', 'error': f"source missing: {cfg['cwd']}"}
 
     os.makedirs(LOG_DIR, exist_ok=True)
-    log = open(os.path.join(LOG_DIR, f'{name}.log'), 'ab')
-    env = {**os.environ, **cfg['env']}
-    # DETACHED_PROCESS + no new console window; own process group for clean kill
-    flags = 0x00000008 | 0x00000200  # DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP
-    proc = subprocess.Popen(
-        [cfg['python'], *cfg['args']],
-        cwd=cfg['cwd'], env=env, stdout=log, stderr=log,
-        stdin=subprocess.DEVNULL, creationflags=flags,
-    )
+    log_path = os.path.join(LOG_DIR, f'{name}.log')
+    with open(log_path, 'ab') as log:
+        env = {**os.environ, **cfg['env']}
+        # DETACHED_PROCESS + no new console window; own process group for clean kill
+        flags = 0x00000008 | 0x00000200  # DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP
+        proc = subprocess.Popen(
+            [cfg['python'], *cfg['args']],
+            cwd=cfg['cwd'], env=env, stdout=log, stderr=log,
+            stdin=subprocess.DEVNULL, creationflags=flags,
+        )
 
     deadline = time.time() + wait
     while time.time() < deadline:

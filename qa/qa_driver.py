@@ -4,7 +4,6 @@ import time
 import pyautogui
 import pywinauto
 from pywinauto import Application
-from pywinauto.keyboard import send_keys
 import os
 from PIL import ImageGrab
 

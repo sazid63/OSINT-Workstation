@@ -1,5 +1,5 @@
 """Collectors: DNS, WHOIS/RDAP, certs (crt.sh), IP, URL. All free, no keys."""
-import socket, ssl, datetime, re, os
+import socket, ssl, re, os
 import requests
 
 UA = {'User-Agent': 'OSINT-Workstation/1.0 (authorized local research)'}
@@ -87,7 +87,7 @@ def mod_cert(target: str):
             out['hostsearch_error'] = str(e2)[:200]
     try:
         ctx = ssl.create_default_context()
-        with socket.create_connection((host, 443), timeout=10) as sock:
+        with socket.create_connection((host, 443), timeout=CERT_TIMEOUT) as sock:
             with ctx.wrap_socket(sock, server_hostname=host) as s:
                 c = s.getpeercert()
                 out['live_cert'] = {'subject': str(c.get('subject')), 'issuer': str(c.get('issuer')),

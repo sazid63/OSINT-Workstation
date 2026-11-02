@@ -4,9 +4,10 @@ import tempfile
 import os
 import pathlib
 
-# Ensure both projects are on path
-sys.path.insert(0, r"C:\1_SAJID\OSINT project\osint-toolkit")
-sys.path.insert(0, r"C:\1_SAJID\OSINT project")
+# Ensure both projects are on path (resolve relative to this file)
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(BASE, 'osint-toolkit'))
+sys.path.insert(0, BASE)
 
 print("=== REGISTRY PLUGIN SOURCE FIX ===")
 from osint_toolkit.core import registry

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """OSINT Terminal — menu + CLI. Usage: python osint.py [command] [args]"""
-import os, sys, json, subprocess
+import os, sys, json
 try:
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 except Exception:
@@ -155,8 +155,11 @@ def menu():
         elif c == '13':
             iid = input('investigation id: ').strip()
             p = f'{BASE}/investigations/{iid}/graph/graph.json'
-            with open(p, encoding='utf-8') as f:
-                print(f.read()[:3000] if os.path.exists(p) else '(no graph yet)')
+            if os.path.exists(p):
+                with open(p, encoding='utf-8') as f:
+                    print(f.read()[:3000])
+            else:
+                print('(no graph yet)')
         elif c == '14':
             for d in sorted(os.listdir(f'{BASE}/investigations'))[-5:]:
                 print(d, '->', f'investigations/{d}/reports/report.md')
@@ -195,6 +198,10 @@ if __name__ == '__main__':
     elif a[0] in ('graph', 'report') and len(a) > 1:
         iid = a[1]
         p = f'{BASE}/investigations/{iid}/{"graph/graph.json" if a[0]=="graph" else "reports/report.md"}'
-        print(open(p, encoding='utf-8').read() if os.path.exists(p) else f'not found: {p}')
+        if os.path.exists(p):
+            with open(p, encoding='utf-8') as f:
+                print(f.read())
+        else:
+            print(f'not found: {p}')
     else:
         print(__doc__)
