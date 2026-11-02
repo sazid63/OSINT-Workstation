@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-11-02
+
+### Fixed
+- **Portability** — Removed hardcoded `base_dir` from `config/settings.yaml` and hardcoded `Python314\Scripts` PATH from `osint.bat`; both now resolve from the project root / system PATH
+- **Config consistency** — `settings.yaml` `default_timeout` aligned to 20s (was 25); confidence weights now match `core/process.py` actual values; version bumped to 0.2.0
+- **Resource leak** — `core/services.py`: service log file handle no longer left open after `Popen`
+- **Config dead code** — `CERT_TIMEOUT` env var in `modules/collectors.py` now actually used for the TLS handshake timeout (was declared but unused)
+- **Dead imports** — Removed unused `subprocess` (osint.py), `datetime` (collectors.py), `send_keys` (qa/qa_driver.py)
+- **Logic bug** — `osint.py` menu option 13 and CLI `graph`/`report` commands opened the file before checking existence
+- **QA portability** — `qa/final_test.py` uses project-relative paths instead of absolute `C:\...` paths
+
+### Added
+- `CHANGELOG.md` (Keep a Changelog format)
+- `DESCRIPTION.md` — one-paragraph repository description
+- Configurable environment variables: `OSINT_HTTP_TIMEOUT`, `OSINT_DNS_LIFETIME`, `OSINT_CERT_TIMEOUT`, `OSINT_SUBDOMAIN_LIMIT`, `OSINT_HARVESTER_LIMIT`
+
+### Removed
+- Stray untracked files (screenshots, HTML artifacts, test output) from the main working tree
+
 ## [0.1.3-security] - 2026-11-02
 
 ### Security
@@ -48,6 +67,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Local file EXIF analysis via ExifTool/Pillow
 - Evidence-based reporting with contradiction detection
 
+[0.2.0]: https://github.com/sazid63/OSINT-Workstation/compare/v0.1.3-security...v0.2.0
 [0.1.3-security]: https://github.com/sazid63/OSINT-Workstation/compare/v0.1.2-fixes...v0.1.3-security
 [0.1.2-fixes]: https://github.com/sazid63/OSINT-Workstation/compare/v0.1.1...v0.1.2-fixes
 [0.1.1]: https://github.com/sazid63/OSINT-Workstation/compare/v0.1.0...v0.1.1

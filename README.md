@@ -2,7 +2,7 @@
 
 A local-first, open-source OSINT (Open Source Intelligence) workstation for Windows 11. Combines multiple data sources into a unified evidence pipeline with automated collection, normalization, and reporting.
 
-**Version:** v0.1.3-security | **Last Updated:** 2026-11-02
+**Version:** v0.2.0 | **Last Updated:** 2026-11-02
 
 ---
 
@@ -159,6 +159,7 @@ python osint.py report <investigation-id>    # View report markdown
 
 ## 🔄 Version History
 
+- **v0.2.0** (2026-11-02): Audit cleanup, portability fixes, resource leak fixes, config consistency, dead code removal
 - **v0.1.3-security** (2026-11-02): Security hardening — XSS fixes, CSRF mitigation, timeout guards, storage bug fix, Python 3 syntax fixes
 - **v0.1.2-fixes** (2026-11-02): Fixed file handle leaks, improved resource management
 - **v0.1.1** (2026-11-01): Enhanced health monitoring, added RIPEstat source
@@ -193,4 +194,5 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) for deta
 ---
 
 **Built with**: Python 3.12, dnspython, requests, Jinja2, SearXNG, SpiderFoot, theHarvester  
-**Platform**: Windows 11 (native processes, no Docker required)
+**Platform**: Windows 11 (native processes, no Docker required)  
+**Repository**: https://github.com/sazid63/OSINT-Workstation
