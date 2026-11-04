@@ -1,0 +1,18 @@
+id: google_search
+name: Google Search
+category: Search Engines
+description: Run a web search on Google (opens in browser).
+how_to_use: |
+  1. Type a query. Google operators like site:, inurl: or "exact phrase" often
+     narrow results well.
+  2. Click Run - the search opens in your browser.
+what_to_connect: []
+safety: passive
+license: Public data
+homepage: https://www.google.com
+inputs:
+  - name: target
+    label: Search query
+    placeholder: "site:example.com filetype:pdf"
+url: "https://www.google.com/search?q={target}"
+tags: [search]

@@ -1,0 +1,23 @@
+id: wafw00f
+name: WAFW00F
+category: Web & URL
+description: Detect whether a website is behind a web application firewall (WAF).
+how_to_use: |
+  1. Type a URL or domain.
+  2. Click Run.
+  3. WAFW00F reports the WAF vendor if one is detected. Useful for
+     understanding defensive posture. Passive and low-impact.
+what_to_connect:
+  - "WAFW00F (pip: wafw00f)"
+safety: passive
+license: BSD-3-Clause
+homepage: https://github.com/EnableSecurity/wafw00f
+inputs:
+  - name: target
+    label: URL or domain
+    placeholder: example.com
+command: ["wafw00f", "{target}"]
+install:
+  method: pip
+  package: wafw00f
+tags: [web, waf]

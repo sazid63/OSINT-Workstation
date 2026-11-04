@@ -1,0 +1,19 @@
+id: dns_lookup
+name: DNS Records
+category: Domain & DNS
+description: Look up A, AAAA, MX, NS, TXT, CNAME and SOA records for a domain.
+how_to_use: |
+  1. Type a domain, for example example.com — do not include http:// or a path.
+  2. Click Run.
+  3. Read the record list. A record type showing an empty list just means that
+     record does not exist for this domain.
+what_to_connect: []
+safety: passive
+license: Public data
+homepage: https://www.iana.org/dns
+inputs:
+  - name: target
+    label: Domain
+    placeholder: example.com
+adapter: osint_toolkit.engine.collectors:dns_lookup
+tags: [dns, domain]

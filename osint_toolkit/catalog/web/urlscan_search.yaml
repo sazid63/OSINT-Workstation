@@ -1,0 +1,19 @@
+id: urlscan_search
+name: urlscan.io Search
+category: Web & URL
+description: Search public urlscan.io scans for a domain and get screenshots/DOM snapshots.
+how_to_use: |
+  1. Type a domain, for example example.com.
+  2. Click Run.
+  3. Each result links to a public scan with a screenshot and the resources the
+     page loaded. This needs no API key for search.
+what_to_connect: []
+safety: passive
+license: Public data
+homepage: https://urlscan.io
+inputs:
+  - name: target
+    label: Domain
+    placeholder: example.com
+adapter: osint_toolkit.engine.collectors:urlscan_search
+tags: [web, url, screenshot]

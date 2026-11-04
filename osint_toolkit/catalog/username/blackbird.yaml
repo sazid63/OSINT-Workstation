@@ -1,0 +1,23 @@
+id: blackbird
+name: Blackbird
+category: Username
+description: Search a username across hundreds of sites with extra result info.
+how_to_use: |
+  1. Type a username, for example johndoe.
+  2. Click Run.
+  3. Blackbird returns hits with context such as image or title when a site
+     provides it.
+what_to_connect:
+  - "Blackbird (pip: blackbird-osint)"
+safety: passive
+license: MIT
+homepage: https://github.com/p1ngul1n0/blackbird
+inputs:
+  - name: target
+    label: Username
+    placeholder: johndoe
+command: ["blackbird", "-u", "{target}"]
+install:
+  method: pip
+  package: blackbird-osint
+tags: [username, social]

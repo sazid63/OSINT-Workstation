@@ -1,18 +1,17 @@
 # ============================================================
 # OSINT Workstation — .gitignore
-# Only the orchestrator app is committed here. Everything that is
-# runtime state, third-party tooling, or user output stays out.
+# Unified for CLI orchestrator + optional PySide6 GUI (osint-toolkit)
 # ============================================================
 
 # --- Secrets & local configuration (NEVER commit) ---
 .env
 .env.*
 !.env.example
+secrets/secrets.env
+secrets/*.db
 *.key
 *.pem
 *.p12
-secrets/secrets.env
-secrets/*.db
 
 # --- Third-party tools vendored at runtime (not source) ---
 tools/exiftool-portable/
@@ -41,6 +40,12 @@ logs/*.json
 *.sqlite
 *.sqlite3
 
+# --- Toolkit specific user data ---
+workspace/
+cases/
+exports/
+state.json
+
 # --- Python ---
 __pycache__/
 *.py[cod]
@@ -62,6 +67,11 @@ env/
 coverage.xml
 htmlcov/
 
+# --- Third-party tools auto-downloaded at runtime ---
+vendor/
+tools/bin/
+downloads/
+
 # --- OS / editor cruft ---
 .DS_Store
 Thumbs.db
@@ -71,7 +81,7 @@ desktop.ini
 *.swp
 *.tmp
 
-# --- DSH ACL diagnostic artifacts (tooling, not source) ---
+# --- DSH ACL diagnostic artifacts ---
 .dsh-acl-recovery/
 
 # --- Media & scraped content (screenshots, images, HTML, PDFs) ---

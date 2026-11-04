@@ -1,0 +1,25 @@
+id: exiftool
+name: ExifTool
+category: Metadata
+description: Read metadata (EXIF, GPS, camera, software) from an image or file.
+how_to_use: |
+  1. Type the full path to a file on your computer, for example
+     C:/Pictures/photo.jpg.
+  2. Click Run — the tool reads metadata from that local file. Nothing is
+     uploaded anywhere.
+  3. GPS coordinates in EXIF, if present, are shown - useful for checking what
+     a photo reveals.
+what_to_connect:
+  - "ExifTool binary (exiftool.org)"
+safety: passive
+license: GPL-1.0-or-later / Artistic
+homepage: https://exiftool.org
+inputs:
+  - name: target
+    label: File path
+    placeholder: C:/Pictures/photo.jpg
+command: ["exiftool", "{target}"]
+install:
+  method: binary
+  url: https://exiftool.org
+tags: [metadata, images]

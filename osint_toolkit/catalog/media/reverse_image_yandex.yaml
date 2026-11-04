@@ -1,0 +1,18 @@
+id: reverse_image_yandex
+name: Reverse Image (Yandex)
+category: Media & Images
+description: Search an image by its URL with Yandex Images (opens in browser).
+how_to_use: |
+  1. Type the URL of an image.
+  2. Click Run - Yandex image search opens on that URL.
+  3. Yandex is often good at finding the same picture on social media.
+what_to_connect: []
+safety: passive
+license: Public data
+homepage: https://yandex.com/images
+inputs:
+  - name: target
+    label: Image URL
+    placeholder: https://example.com/photo.jpg
+url: "https://yandex.com/images/search?rpt=imageview&url={target}"
+tags: [images, reverse-image]

@@ -1,0 +1,22 @@
+id: dnsx
+name: dnsx
+category: Domain & DNS
+description: Fast DNS toolkit - resolve a list of hostnames and record types.
+how_to_use: |
+  1. Type a domain, for example example.com.
+  2. Click Run.
+  3. dnsx resolves the domain and prints the live records it finds.
+what_to_connect:
+  - "dnsx binary (from ProjectDiscovery)"
+safety: passive
+license: MIT
+homepage: https://github.com/projectdiscovery/dnsx
+inputs:
+  - name: target
+    label: Domain
+    placeholder: example.com
+command: ["dnsx", "-silent", "-d", "{target}"]
+install:
+  method: binary
+  url: https://github.com/projectdiscovery/dnsx/releases
+tags: [dns, domain]

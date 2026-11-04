@@ -1,0 +1,19 @@
+id: http_headers
+name: HTTP Headers
+category: Web & URL
+description: Fetch a site's HTTP response headers and flag key security headers.
+how_to_use: |
+  1. Type a URL or domain, for example example.com.
+  2. Click Run.
+  3. Review the status code and the security headers. Missing headers such as
+     Content-Security-Policy are worth noting, not automatically a problem.
+what_to_connect: []
+safety: passive
+license: Public data
+homepage: https://developer.mozilla.org/docs/Web/HTTP/Headers
+inputs:
+  - name: target
+    label: URL or domain
+    placeholder: example.com
+adapter: osint_toolkit.engine.collectors:http_headers
+tags: [http, web]

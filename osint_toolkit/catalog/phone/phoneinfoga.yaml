@@ -1,0 +1,23 @@
+id: phoneinfoga
+name: PhoneInfoga
+category: Phone
+description: Basic phone-number reconnaissance from public data (passive scan mode).
+how_to_use: |
+  1. Type a phone number with country code, for example +15551234567.
+  2. Click Run.
+  3. PhoneInfoga validates the number and searches public sources. Only use
+     numbers you are lawfully allowed to investigate.
+what_to_connect:
+  - "PhoneInfoga binary (github.com/sundowndev/phoneinfoga)"
+safety: passive
+license: GPL-3.0
+homepage: https://github.com/sundowndev/phoneinfoga
+inputs:
+  - name: target
+    label: Phone number
+    placeholder: +15551234567
+command: ["phoneinfoga", "scan", "-n", "{target}"]
+install:
+  method: binary
+  url: https://github.com/sundowndev/phoneinfoga/releases
+tags: [phone]

@@ -1,0 +1,22 @@
+id: httpx
+name: httpx (probing)
+category: Web & URL
+description: Probe hosts and print status, title, technologies and TLS info.
+how_to_use: |
+  1. Type a host or URL, for example example.com.
+  2. Click Run.
+  3. httpx reports what it finds: status code, page title, server, TLS.
+what_to_connect:
+  - "httpx binary (ProjectDiscovery)"
+safety: passive
+license: MIT
+homepage: https://github.com/projectdiscovery/httpx
+inputs:
+  - name: target
+    label: Host or URL
+    placeholder: example.com
+command: ["httpx", "-silent", "-u", "{target}", "-title", "-tech-detect", "-status-code"]
+install:
+  method: binary
+  url: https://github.com/projectdiscovery/httpx/releases
+tags: [web, http]

@@ -1,0 +1,19 @@
+id: ip_lookup
+name: IP Intelligence
+category: IP & Network
+description: Registration, network and ASN details for an IP address via RDAP.
+how_to_use: |
+  1. Type an IPv4 or IPv6 address, for example 8.8.8.8.
+  2. Click Run.
+  3. You will see who the IP is registered to, the network range, and the
+     autonomous system (ASN) that announces it.
+what_to_connect: []
+safety: passive
+license: Public data
+homepage: https://rdap.org
+inputs:
+  - name: target
+    label: IP address
+    placeholder: 8.8.8.8
+adapter: osint_toolkit.engine.collectors:ip_lookup
+tags: [ip, asn, network]

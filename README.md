@@ -1,46 +1,75 @@
 # OSINT Workstation
 
-A local-first, open-source OSINT (Open Source Intelligence) workstation for Windows 11. Combines multiple data sources into a unified evidence pipeline with automated collection, normalization, and reporting.
+**A unified local-first OSINT platform** — CLI orchestrator + optional PySide6 desktop GUI — for Windows 11 (also runs on Linux/macOS).
 
-**Version:** v0.2.0 | **Last Updated:** 2026-11-02
+- **CLI (`osint`)** — Native pipeline: `TARGET → detect → plan → parallel collect → normalize → dedupe → correlate → confidence → graph → report`
+- **GUI (`osint-toolkit-gui`)** — PySide6 desktop app with AI agent, MCP server, tool catalog, web UI, and safety guardrails
+- **Services** — Native SearXNG (:8888) + SpiderFoot (:5001) managed as local processes (no Docker)
+- **All local, keyless, privacy-first** — Data never leaves your machine
+
+**Version:** v0.2.0 | **License:** MIT | **Python:** ≥ 3.11 | **Platform:** Windows 11 (primary)
 
 ---
 
 ## 🏗️ Architecture
 
 ```
-TARGET → detect → plan → parallel collect → normalize → dedupe → correlate → confidence → graph → report
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         OSINT Workstation v0.2.0                            │
+├──────────────────────────────┬──────────────────────────────────────────────┤
+│           CLI (osint)         │           GUI (osint-toolkit)               │
+├──────────────────────────────┼──────────────────────────────────────────────┤
+│  Detect → Plan → Collect     │  Dashboard · Tools · Run · Results          │
+│  Normalize → Correlate       │  Assistant (AI agent) · Settings            │
+│  Graph → Report              │  MCP server · Web UI (FastAPI)              │
+└──────────────┬───────────────┴──────────────────────────────────────────────┘
+               │
+       ┌───────┴───────┐
+       ▼               ▼
+  ┌─────────┐    ┌─────────────┐
+  │ SearXNG │    │ SpiderFoot  │
+  │  :8888  │    │  :5001      │
+  │ native  │    │  native     │
+  └─────────┘    └─────────────┘
 ```
 
 | Layer | Tool | Purpose |
 |-------|------|---------|
-| Metasearch | SearXNG (:8888) | Multi-engine aggregation, no API keys |
-| Engine | SpiderFoot (:5001) | Automated reconnaissance framework |
-| DNS/WHOIS | Native Python | Direct resolver queries, free tier APIs |
-| Certificates | crt.sh + TLS handshake | Certificate transparency & live verification |
-| IP Intelligence | ipinfo.io, RIPEstat | Geo-IP and ASN lookup |
-| Username | Sherlock, GitLab/GitHub APIs | Cross-platform handle detection |
-| Metadata | ExifTool + Pillow | File EXIF extraction (local only) |
+| **Metasearch** | SearXNG (:8888) | Multi-engine aggregation, no API keys |
+| **Engine** | SpiderFoot (:5001) | Automated reconnaissance framework |
+| **DNS/WHOIS** | Native Python | Direct resolver queries, free tier APIs |
+| **Certificates** | crt.sh + TLS handshake | Certificate transparency & live verification |
+| **IP Intelligence** | ipinfo.io, RIPEstat | Geo-IP and ASN lookup |
+| **Username** | Sherlock, GitLab/GitHub APIs | Cross-platform handle detection |
+| **Metadata** | ExifTool + Pillow | File EXIF extraction (local only) |
+| **AI Agent** | Ollama + guardrails | Evidence-grounded analysis only |
 
 ---
 
 ## 🚀 Quick Start
 
 ```powershell
-# Install dependencies
-pip install -r requirements.txt
+# 1. Clone with submodules (tools downloaded at runtime)
+git clone https://github.com/sazid63/OSINT-Workstation.git
+cd OSINT-Workstation
 
-# Start services (SearXNG + SpiderFoot)
+# 2. Install dependencies (CLI + optional GUI)
+pip install -r requirements.txt
+# For GUI:
+pip install -e .[gui]
+
+# 3. Install ExifTool (one-time, requires admin)
+winget install --id OliverBetz.ExifTool --source winget
+
+# 4. Start services (SearXNG + SpiderFoot)
 python osint.py services up
 
-# Run investigation
+# 5. Run your first investigation
 python osint.py investigate example.com
 
-# Check status
-python osint.py status
-
-# Interactive terminal
-osint.bat
+# 6. Or launch the GUI
+run_gui.bat
+# or: python -m osint_toolkit
 ```
 
 **Stop services when done:**
@@ -53,35 +82,60 @@ python osint.py services down
 ## 📁 Project Structure
 
 ```
-OSINT project/
-├── core/               # Main application logic
-│   ├── analyst.py      # Local AI analysis (Ollama)
-│   ├── clients.py      # HTTP clients for SearXNG/SpiderFoot
-│   ├── detect.py       # Target type detection & planning
-│   ├── health.py       # Source health monitoring
-│   ├── http.py         # Rate-limited HTTP with caching
-│   ├── orchestrator.py # Investigation pipeline
-│   ├── process.py      # Normalization & correlation
-│   ├── report.py       # Report generation
-│   ├── services.py     # Service manager (native, no Docker)
-│   └── storage.py      # Investigation storage
+OSINT-Workstation/
+├── .github/                    # CI workflows
+├── core/                       # CLI orchestrator
+│   ├── analyst.py              # Local AI analysis (Ollama)
+│   ├── clients.py              # HTTP clients for SearXNG/SpiderFoot
+│   ├── detect.py               # Target type detection & planning
+│   ├── health.py               # Source health monitoring
+│   ├── http.py                 # Rate-limited HTTP with caching
+│   ├── orchestrator.py         # Investigation pipeline
+│   ├── process.py              # Normalization & correlation
+│   ├── report.py               # Report generation (MD/HTML/JSON)
+│   ├── services.py             # Service manager (native, no Docker)
+│   └── storage.py              # Investigation storage
 ├── modules/
-│   └── collectors.py   # Individual data collectors
+│   └── collectors.py           # Individual data collectors
 ├── config/
-│   ├── sources.yaml    # Source configuration
-│   └── source_registry.yaml  # 50+ source registry
-├── tools/
-│   ├── searxng/        # Self-hosted SearXNG instance
-│   ├── spiderfoot-src/ # SpiderFoot framework
-│   └── theHarvester/   # Email/subdomain aggregation
+│   ├── settings.yaml           # Global config
+│   ├── sources.yaml            # Source configuration
+│   ├── source_registry.yaml    # 50+ source registry
+│   └── source_health.json      # Last health check (git-ignored)
+├── osint_toolkit/              # GUI package (folded in, no submodule)
+│   ├── ai/                     # AI agent + providers
+│   ├── catalog/                # Tool catalog (YAML definitions)
+│   ├── core/                   # Registry, runner, safety, workspace
+│   ├── engine/                 # Tool execution engine
+│   ├── mcp/                    # MCP server for OpenCode
+│   ├── ui/                     # PySide6 app (pages, theme, workers)
+│   ├── web/                    # FastAPI web UI + MCP
+│   ├── cli.py                  # Toolkit CLI entry
+│   └── config.py               # Toolkit config
+├── tools/                      # Vendored at runtime (git-ignored)
+│   ├── searxng/                # Self-hosted SearXNG instance
+│   ├── spiderfoot-src/         # SpiderFoot framework
+│   └── theHarvester/           # Email/subdomain aggregation
 ├── secrets/
-│   └── .env.example    # API key template
-└── osint.py           # Main CLI entry point
+│   └── .env.example            # API key template
+├── packaging/                  # Inno Setup installer
+├── docs/                       # Extra docs (toolkit, contributing, security)
+├── tests/                      # CLI tests
+├── osint_toolkit/              # Toolkit tests
+├── .github/workflows/          # CI
+├── LICENSE                     # MIT
+├── CHANGELOG.md                # Release history
+├── pyproject.toml              # Modern packaging
+├── requirements.txt            # All deps (CLI + GUI + MCP)
+├── run_cli.bat                 # CLI launcher
+├── run_gui.bat                 # GUI launcher
+├── run_web.bat                 # Web UI launcher
+└── osint.py                    # Main CLI entry point
 ```
 
 ---
 
-## 🔧 Configuration
+## ⚙️ Configuration
 
 ### Sources
 - `config/sources.yaml` — Enable/disable sources, configure timeouts
@@ -94,6 +148,19 @@ OSINT project/
 | `OSINT_DNS_LIFETIME` | 10 | DNS query lifetime (seconds) |
 | `OSINT_SUBDOMAIN_LIMIT` | 200 | Max subdomains to collect |
 | `OSINT_HARVESTER_LIMIT` | 50 | Max results from theHarvester |
+| `OLLAMA_URL` | `http://localhost:11434` | Ollama endpoint for AI analyst |
+
+### Install Extras
+```powershell
+# GUI (PySide6)
+pip install -e .[gui]
+
+# MCP server
+pip install -e .[mcp]
+
+# Dev tools
+pip install -e .[dev]
+```
 
 ---
 
@@ -104,66 +171,108 @@ OSINT project/
 - **Polite crawling**: Built-in rate limiting (1 req/s per host)
 - **Keyless by design**: Works without API keys; optional keys for enhanced coverage
 - **Authorization only**: Use only on targets you're authorized to investigate
+- **Safety guardrails** (GUI): Tool approval dialog, safe/unsafe mode, MCP auth
 
 ---
 
 ## 🛡️ Security Hardening (v0.1.3-security)
 
-This release hardens the frontend and backend against common web vulnerabilities:
+- **XSS prevention** — All dynamic HTML content escaped with `html.escape()`
+- **CSRF mitigation** — State-changing ops switched from GET to POST with JSON body
+- **Race-condition fix** — `$.inArray()` filter corrected from truthy to `!== -1`
+- **Resource management** — Parallel collection tasks have 30-second timeout
+- **Storage bug fix** — Undefined variable removed from `core/storage.py`
+- **Python 3 syntax** — Corrected `except OSError, ValueError` syntax
 
-- **XSS prevention** — All user-controlled data rendered in HTML reports is escaped with `html.escape()`. SpiderFoot's `sf.replace_sfurltag()` now sanitizes URLs before inserting them into links. D3 tooltip content in `viz.js` uses `.text()` instead of `.html()`.
-- **CSRF mitigation** — State-changing operations (`sf.deleteScan`, `sf.stopScan`) switched from GET to POST with a JSON body.
-- **Race-condition fix** — `$.inArray()` filter check now correctly uses `!== -1` instead of a truthy check.
-- **Resource management** — Parallel collection tasks in `orchestrator.py` now have a 30-second timeout to prevent hangs.
-- **Storage bug fix** — `core/storage.py` no longer references an undefined variable `p` when writing investigation metadata.
-- **Python 3 syntax fix** — `tools/theHarvester/.../harvestview.py` corrected from Python 2 `except OSError, ValueError` syntax.
+See [CHANGELOG.md](CHANGELOG.md) for full details.
 
-See [CHANGELOG.md](CHANGELOG.md) for the full release notes.
+---
 
-Check which sources are working:
+## 🛠️ CLI Commands (`osint`)
+
 ```powershell
-python osint.py health
-```
+# Investigation
+osint investigate <target>          # Standard investigation
+osint investigate --deep <target>   # Deep analysis (includes chaining)
+osint investigate --ai <target>     # With AI analysis (requires Ollama)
 
-View source registry:
-```powershell
-python osint.py sources
+# Services
+osint services up|down|status       # Manage SearXNG/SpiderFoot
+osint services start <name>         # Start single service
+
+# Quick single-source checks
+osint dns|ip|email|username <target>
+osint search <query>                # SearXNG search
+osint metadata <file>               # Local file EXIF analysis
+osint harvester <domain>            # Passive email/host aggregation
+
+# Reports
+osint graph <investigation-id>      # View investigation graph
+osint report <investigation-id>     # View report markdown
+
+# Source management
+osint health                        # Live health check of all sources
+osint sources                       # List all registered sources
+osint tools                         # List native tools
+
+# Toolkit delegation (GUI, MCP, Web)
+osint toolkit list                  # List toolkit tools
+osint gui                           # Launch GUI
+osint mcp                           # Start MCP server
+osint web                           # Start web UI
 ```
 
 ---
 
-## 🛠️ CLI Commands
+## 🖥️ GUI Commands (`osint-toolkit-gui`)
 
 ```powershell
-# Investigation
-python osint.py investigate <target>          # Standard investigation
-python osint.py investigate --deep <target>   # Deep analysis (includes chaining)
-python osint.py investigate --ai <target>     # With AI analysis (requires Ollama)
+# Full GUI
+run_gui.bat
+# or
+python -m osint_toolkit
 
-# Services
-python osint.py services up|down|status       # Manage SearXNG/SpiderFoot
-python osint.py services start <name>         # Start single service
+# CLI mode
+run_cli.bat list
+python -m osint_toolkit list
 
-# Tools
-python osint.py dns|ip|email|username <target>  # Quick single-source checks
-python osint.py search <query>               # SearXNG search
-python osint.py metadata <file>              # Local file EXIF analysis
-python osint.py harvester <domain>           # Passive email/host aggregation
+# MCP server for OpenCode
+run_web.bat mcp
+python -m osint_toolkit.mcp.server
 
-# Reports
-python osint.py graph <investigation-id>     # View investigation graph
-python osint.py report <investigation-id>    # View report markdown
+# Web UI
+run_web.bat
+python -m osint_toolkit.web.server
 ```
+
+**GUI Features:**
+- Dashboard with stats & quick actions
+- Tool catalog with safety badges (safe/unsafe/needs-approval)
+- Run page with live logs & progress
+- Results browser with exports
+- AI Assistant (Ollama) with evidence-grounded responses
+- Settings: API keys, tool approval, workspace, safety
+
+---
+
+## 📦 Installation Methods
+
+| Method | Command | Best For |
+|--------|---------|----------|
+| **Editable (dev)** | `pip install -e .[gui,mcp]` | Development |
+| **User install** | `pipx install -e .[gui]` | Isolated app |
+| **Portable (Windows)** | `packaging/OSINT-Toolkit.iss` | Inno Setup installer |
+| **Minimal (CLI only)** | `pip install -r requirements.txt` | Servers/headless |
 
 ---
 
 ## 🔄 Version History
 
-- **v0.2.0** (2026-11-02): Audit cleanup, portability fixes, resource leak fixes, config consistency, dead code removal
-- **v0.1.3-security** (2026-11-02): Security hardening — XSS fixes, CSRF mitigation, timeout guards, storage bug fix, Python 3 syntax fixes
-- **v0.1.2-fixes** (2026-11-02): Fixed file handle leaks, improved resource management
-- **v0.1.1** (2026-11-01): Enhanced health monitoring, added RIPEstat source
-- **v0.1.0** (2026-10-05): Initial release with core pipeline
+- **v0.2.0** (2026-11-02): Unified repo merge — CLI + GUI folded into single repo, pyproject.toml, requirements unified, submodule removed, docs consolidated
+- **v0.1.3-security** (2026-11-02): Security hardening — XSS, CSRF, timeouts, storage fix, Python 3
+- **v0.1.2-fixes** (2026-11-02): File handle leaks, resource management
+- **v0.1.1** (2026-11-01): Health monitoring, RIPEstat source
+- **v0.1.0** (2026-10-05): Initial CLI orchestrator + native services
 
 ---
 
@@ -174,6 +283,8 @@ python osint.py report <investigation-id>    # View report markdown
 3. Commit changes (`git commit -am 'Add new OSINT collector'`)
 4. Push to branch (`git push origin feature/new-collector`)
 5. Open a Pull Request
+
+**Code style:** `ruff` (line-length 100, py311) · Tests: `pytest`
 
 ---
 
@@ -193,6 +304,6 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) for deta
 
 ---
 
-**Built with**: Python 3.12, dnspython, requests, Jinja2, SearXNG, SpiderFoot, theHarvester  
-**Platform**: Windows 11 (native processes, no Docker required)  
-**Repository**: https://github.com/sazid63/OSINT-Workstation
+**Built with:** Python 3.11+, dnspython, requests, Jinja2, PySide6, SearXNG, SpiderFoot, theHarvester, Ollama (optional)  
+**Platform:** Windows 11 (primary), Linux, macOS (CLI)  
+**Repository:** https://github.com/sazid63/OSINT-Workstation

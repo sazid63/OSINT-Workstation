@@ -1,0 +1,18 @@
+id: reverse_image_tineye
+name: Reverse Image (TinEye)
+category: Media & Images
+description: Search an image by its URL with TinEye (opens in browser).
+how_to_use: |
+  1. Type the URL of an image.
+  2. Click Run - TinEye opens on that URL.
+  3. TinEye matches exact and modified copies of the image.
+what_to_connect: []
+safety: passive
+license: Public data
+homepage: https://tineye.com
+inputs:
+  - name: target
+    label: Image URL
+    placeholder: https://example.com/photo.jpg
+url: "https://tineye.com/search?url={target}"
+tags: [images, reverse-image]

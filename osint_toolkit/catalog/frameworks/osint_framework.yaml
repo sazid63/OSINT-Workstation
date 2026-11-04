@@ -1,0 +1,15 @@
+id: osint_framework
+name: OSINT Framework
+category: Frameworks
+description: The classic visual index of free OSINT tools (opens in browser).
+how_to_use: |
+  1. Click Run - the OSINT Framework site opens.
+  2. Browse by category (people, phone numbers, social media, documents, ...)
+     and click the tool names. Many point to free web tools or search pages.
+what_to_connect: []
+safety: passive
+license: MIT
+homepage: https://osintframework.com
+inputs: []
+url: "https://osintframework.com/"
+tags: [reference, index]

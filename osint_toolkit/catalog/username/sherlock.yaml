@@ -1,0 +1,23 @@
+id: sherlock
+name: Sherlock
+category: Username
+description: Search one username across 400+ public websites.
+how_to_use: |
+  1. Type a username without the @, for example johndoe.
+  2. Click Run. This is passive - it only visits public profile URLs.
+  3. Sites where profiles exist are listed. Remember: profiles can be
+     outdated, fake, or belong to a different person.
+what_to_connect:
+  - "Sherlock (pip: sherlock-project)"
+safety: passive
+license: MIT
+homepage: https://github.com/sherlock-project/sherlock
+inputs:
+  - name: target
+    label: Username
+    placeholder: johndoe
+command: ["sherlock", "{target}", "--timeout", "10"]
+install:
+  method: pip
+  package: sherlock-project
+tags: [username, social]

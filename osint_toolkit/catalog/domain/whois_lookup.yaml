@@ -1,0 +1,20 @@
+id: whois_lookup
+name: WHOIS Lookup
+category: Domain & DNS
+description: Registration details for a domain — registrar, dates, name servers.
+how_to_use: |
+  1. Type a domain, for example example.com.
+  2. Click Run.
+  3. Look for the registrar, creation/expiry dates and name servers. Many
+     registrars now hide owner details behind privacy protection — that is
+     normal and not a sign of anything wrong.
+what_to_connect: []
+safety: passive
+license: Public data
+homepage: https://www.icann.org
+inputs:
+  - name: target
+    label: Domain
+    placeholder: example.com
+adapter: osint_toolkit.engine.collectors:whois_lookup
+tags: [whois, domain]

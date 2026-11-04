@@ -1,0 +1,19 @@
+id: duckduckgo
+name: DuckDuckGo Search
+category: Search Engines
+description: Run a web search on DuckDuckGo (opens in browser).
+how_to_use: |
+  1. Type a query (you can combine ideas, e.g. name + city).
+  2. Click Run.
+  3. Results open in your browser. Photograph results yourself; this tool does
+     not scrape.
+what_to_connect: []
+safety: passive
+license: Public data
+homepage: https://duckduckgo.com
+inputs:
+  - name: target
+    label: Search query
+    placeholder: search terms
+url: "https://duckduckgo.com/?q={target}"
+tags: [search]

@@ -1,0 +1,25 @@
+id: masscan
+name: Masscan
+category: IP & Network
+description: Very fast port scanner for large ranges you own or are authorized to test.
+how_to_use: |
+  1. Type a target you OWN or have WRITTEN PERMISSION to scan (e.g. 192.0.2.0/24).
+  2. Click Run.
+  3. Masscan is extremely fast; use conservative rates on shared networks.
+important: |
+  ACTIVE TOOL. Requires authorization. The authors accept no liability for
+  misuse - you are solely responsible.
+what_to_connect:
+  - "Masscan binary (github.com/robertdavidgraham/masscan)"
+safety: active
+license: AGPL-3.0
+homepage: https://github.com/robertdavidgraham/masscan
+inputs:
+  - name: target
+    label: Target range
+    placeholder: 192.0.2.0/24
+command: ["masscan", "{target}", "-p1-1024", "--rate", "1000"]
+install:
+  method: binary
+  url: https://github.com/robertdavidgraham/masscan
+tags: [ports, active, network]

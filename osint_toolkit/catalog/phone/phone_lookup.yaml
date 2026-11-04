@@ -1,0 +1,19 @@
+id: phone_lookup
+name: Phone Metadata
+category: Phone
+description: Validate and describe a phone number offline (country, carrier, line type).
+how_to_use: |
+  1. Type a phone number with country code, for example +1 555 123 4567.
+  2. Click Run. This runs entirely offline using the libphonenumber data.
+  3. Check whether the number is valid, which country and carrier it belongs
+     to, and its line type (mobile, landline, VOIP).
+what_to_connect: []
+safety: passive
+license: Apache-2.0
+homepage: https://github.com/google/libphonenumber
+inputs:
+  - name: target
+    label: Phone number
+    placeholder: +15551234567
+adapter: osint_toolkit.engine.collectors:phone_lookup
+tags: [phone]

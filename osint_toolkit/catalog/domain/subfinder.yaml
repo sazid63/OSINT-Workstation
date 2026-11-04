@@ -1,0 +1,23 @@
+id: subfinder
+name: Subfinder
+category: Domain & DNS
+description: Fast passive subdomain enumeration from many public sources.
+how_to_use: |
+  1. Type a domain, for example example.com.
+  2. Click Run.
+  3. Subfinder queries public sources only (no brute force), so it is safe and
+     passive. Results are the hostnames it found.
+what_to_connect:
+  - "Subfinder binary (auto-download available in Settings)"
+safety: passive
+license: MIT
+homepage: https://github.com/projectdiscovery/subfinder
+inputs:
+  - name: target
+    label: Domain
+    placeholder: example.com
+command: ["subfinder", "-d", "{target}", "-silent"]
+install:
+  method: binary
+  url: https://github.com/projectdiscovery/subfinder/releases
+tags: [subdomains, domain]

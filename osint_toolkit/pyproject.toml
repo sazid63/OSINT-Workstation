@@ -1,0 +1,59 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "osint-toolkit"
+version = "0.1.0"
+description = "A local, open-source, educational OSINT desktop toolkit."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "The OSINT Toolkit Authors" }]
+keywords = ["osint", "security", "reconnaissance", "education"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: X11 Applications :: Qt",
+  "Intended Audience :: Education",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Topic :: Security",
+]
+
+dependencies = [
+  "PySide6>=6.7",
+  "requests>=2.31",
+  "dnspython>=2.6",
+  "python-whois>=0.9",
+  "ipwhois>=1.2",
+  "pyyaml>=6.0",
+  "jinja2>=3.1",
+  "keyring>=24.0",
+  "packaging>=23.0",
+  "phonenumbers>=8.13",
+]
+
+[project.optional-dependencies]
+mcp = ["mcp>=1.2"]
+dev = ["pytest>=8.0", "ruff>=0.5", "gitleaks-py>=0.1; platform_system=='Linux'"]
+
+[project.scripts]
+osint-toolkit = "osint_toolkit.cli:main"
+osint-toolkit-mcp = "osint_toolkit.mcp.server:main"
+
+[project.gui-scripts]
+osint-toolkit-gui = "osint_toolkit.ui.app:main"
+
+[project.urls]
+Homepage = "https://github.com/sazid63/OSINT-Toolkit"
+Source = "https://github.com/sazid63/OSINT-Toolkit"
+
+[tool.hatch.build.targets.wheel]
+packages = ["osint_toolkit"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,10 @@
+@echo off
+REM OSINT Toolkit — GUI entry point
+setlocal
+cd /d "%~dp0"
+if exist ".venv\Scripts\python.exe" (
+  ".venv\Scripts\python.exe" -m osint_toolkit %*
+) else (
+  python -m osint_toolkit %*
+)
+endlocal

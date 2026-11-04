@@ -1,0 +1,14 @@
+id: bellingcat_toolkit
+name: Bellingcat Toolkit
+category: Frameworks
+description: Bellingcat's curated list of free online investigation tools.
+how_to_use: |
+  1. Click Run - the Bellingcat toolkit page opens.
+  2. Covers geography, images, social media, archives and more.
+what_to_connect: []
+safety: passive
+license: Reference / CC-BY
+homepage: https://bellingcat.gitbook.io/toolkit
+inputs: []
+url: "https://bellingcat.gitbook.io/toolkit"
+tags: [reference, index]

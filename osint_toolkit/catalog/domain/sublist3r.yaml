@@ -1,0 +1,22 @@
+id: sublist3r
+name: Sublist3r
+category: Domain & DNS
+description: Passive subdomain enumeration using search engines and public sources.
+how_to_use: |
+  1. Type a domain, for example example.com.
+  2. Click Run.
+  3. Sublist3r gathers subdomains from public sources; it does not brute force.
+what_to_connect:
+  - "Sublist3r (pip: sublist3r)"
+safety: passive
+license: GPL-2.0
+homepage: https://github.com/aboul3la/Sublist3r
+inputs:
+  - name: target
+    label: Domain
+    placeholder: example.com
+command: ["sublist3r", "-d", "{target}", "-n"]
+install:
+  method: pip
+  package: sublist3r
+tags: [subdomains, domain]

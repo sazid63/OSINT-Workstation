@@ -1,0 +1,19 @@
+id: reverse_image_google
+name: Reverse Image (Google Lens)
+category: Media & Images
+description: Search an image by its URL with Google Lens (opens in browser).
+how_to_use: |
+  1. Type the URL of an image (the image must be reachable online).
+  2. Click Run — Google Lens opens on that image URL.
+  3. Look at the "visually similar" results; they may find the same photo
+     elsewhere or the original source.
+what_to_connect: []
+safety: passive
+license: Public data
+homepage: https://lens.google.com
+inputs:
+  - name: target
+    label: Image URL
+    placeholder: https://example.com/photo.jpg
+url: "https://lens.google.com/uploadbyurl?url={target}"
+tags: [images, reverse-image]

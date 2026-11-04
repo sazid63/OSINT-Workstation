@@ -1,0 +1,23 @@
+id: theharvester
+name: theHarvester
+category: Email
+description: Collect emails, hostnames and more about a domain from public sources.
+how_to_use: |
+  1. Type a domain, for example example.com.
+  2. Click Run.
+  3. theHarvester queries many public sources (search engines, PGP, cert
+     transparency). Results can take a minute.
+what_to_connect:
+  - "theHarvester (pip: theHarvester, or GitHub master)"
+safety: passive
+license: GPL-2.0
+homepage: https://github.com/laramies/theHarvester
+inputs:
+  - name: target
+    label: Domain
+    placeholder: example.com
+command: ["theHarvester", "-d", "{target}", "-b", "all"]
+install:
+  method: pip
+  package: theHarvester
+tags: [email, domain]

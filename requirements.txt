@@ -1,8 +1,18 @@
+# Core dependencies — CLI + GUI + MCP
 requests>=2.31
 dnspython>=2.6
-python-whois>=0.7.3
-ipwhois>=1.1.0
+python-whois>=0.9
+ipwhois>=1.2
 pyyaml>=6.0
 jinja2>=3.1
 sherlock-project>=0.14
 theHarvester>=4.0
+keyring>=24.0
+packaging>=23.0
+phonenumbers>=8.13
+
+# GUI (PySide6)
+PySide6>=6.7
+
+# Optional: MCP server (expose tools to OpenCode and other MCP clients)
+mcp>=1.2

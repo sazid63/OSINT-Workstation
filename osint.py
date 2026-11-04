@@ -203,5 +203,21 @@ if __name__ == '__main__':
                 print(f.read())
         else:
             print(f'not found: {p}')
+    elif a[0] in ('toolkit', 'gui', 'mcp', 'web') and len(a) > 1:
+        # Delegate to osint_toolkit
+        import subprocess
+        subprocess.run([sys.executable, '-m', 'osint_toolkit'] + a[1:], cwd=BASE)
     else:
         print(__doc__)
+
+
+def main():
+    """Entry point for setuptools / pipx install."""
+    import sys as _sys
+    _sys.argv[0] = 'osint'
+    if len(_sys.argv) > 1:
+        _sys.argv[1:] = _sys.argv[1:]
+    return __name__ == '__main__' and None
+
+if __name__ == '__main__':
+    main()

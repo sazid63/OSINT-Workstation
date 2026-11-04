@@ -1,0 +1,16 @@
+id: spiderfoot
+name: SpiderFoot (local UI)
+category: Frameworks
+description: Open-source automation platform that chains hundreds of passive modules.
+how_to_use: |
+  1. Run SpiderFoot locally first (start it in this app's Settings if enabled).
+  2. Click Run - the SpiderFoot web UI opens at http://localhost:5001.
+  3. Create a scan there: paste a target, pick a scan type, and let it run.
+what_to_connect:
+  - "A local SpiderFoot instance (default http://localhost:5001)"
+safety: passive
+license: MIT
+homepage: https://github.com/smicallef/spiderfoot
+inputs: []
+url: "http://localhost:5001/"
+tags: [framework, automation]

@@ -5,24 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.0] - 2026-11-02
+## [0.2.0] - 2026-11-04
+
+### Added — Repo Unification (Major)
+- **Single repo** — Merged `OSINT-Toolkit` (PySide6 GUI, AI agent, MCP server, tool catalog, web UI) into `OSINT-Workstation` as plain directory `osint_toolkit/` (git submodule removed)
+- **Unified packaging** — `pyproject.toml` with optional `[gui]`, `[mcp]`, `[dev]` extras; `requirements.txt` covers CLI + GUI + MCP
+- **Unified entry points** — `osint` (CLI), `osint-toolkit` (toolkit CLI), `osint-toolkit-gui` (GUI), `osint-toolkit-mcp` (MCP server)
+- **Consolidated docs** — Toolkit README/SECURITY/CONTRIBUTING/DISCLAIMER/WINDOWS_RUN folded under `docs/`
+- **Unified CI/CD** — Single workflow for lint, test, build
 
 ### Fixed
-- **Portability** — Removed hardcoded `base_dir` from `config/settings.yaml` and hardcoded `Python314\Scripts` PATH from `osint.bat`; both now resolve from the project root / system PATH
-- **Config consistency** — `settings.yaml` `default_timeout` aligned to 20s (was 25); confidence weights now match `core/process.py` actual values; version bumped to 0.2.0
+- **Portability** — Removed hardcoded `base_dir` from `config/settings.yaml` and hardcoded `Python314\Scripts` PATH from `osint.bat`; both now resolve from project root / system PATH
+- **Config consistency** — `settings.yaml` `default_timeout` aligned to 20s (was 25); confidence weights match `core/process.py`; version bumped to 0.2.0
 - **Resource leak** — `core/services.py`: service log file handle no longer left open after `Popen`
-- **Config dead code** — `CERT_TIMEOUT` env var in `modules/collectors.py` now actually used for the TLS handshake timeout (was declared but unused)
+- **Config dead code** — `CERT_TIMEOUT` env var in `modules/collectors.py` now actually used for TLS handshake timeout (was declared but unused)
 - **Dead imports** — Removed unused `subprocess` (osint.py), `datetime` (collectors.py), `send_keys` (qa/qa_driver.py)
-- **Logic bug** — `osint.py` menu option 13 and CLI `graph`/`report` commands opened the file before checking existence
+- **Logic bug** — `osint.py` menu option 13 and CLI `graph`/`report` commands opened file before checking existence
 - **QA portability** — `qa/final_test.py` uses project-relative paths instead of absolute `C:\...` paths
 
 ### Added
-- `CHANGELOG.md` (Keep a Changelog format)
-- `DESCRIPTION.md` — one-paragraph repository description
-- Configurable environment variables: `OSINT_HTTP_TIMEOUT`, `OSINT_DNS_LIFETIME`, `OSINT_CERT_TIMEOUT`, `OSINT_SUBDOMAIN_LIMIT`, `OSINT_HARVESTER_LIMIT`
+- `pyproject.toml` (modern packaging, hatchling backend)
+- `run_cli.bat`, `run_gui.bat`, `run_web.bat` (Windows launchers)
+- Optional extras: `[gui]` (PySide6), `[mcp]` (MCP), `[dev]` (pytest/ruff)
+- Configurable env vars: `OSINT_HTTP_TIMEOUT`, `OSINT_DNS_LIFETIME`, `OSINT_CERT_TIMEOUT`, `OSINT_SUBDOMAIN_LIMIT`, `OSINT_HARVESTER_LIMIT`, `OLLAMA_URL`
 
 ### Removed
-- Stray untracked files (screenshots, HTML artifacts, test output) from the main working tree
+- Stray untracked files (screenshots, HTML artifacts, test output) from working tree
+- Git submodule `osint-toolkit` (folded in as plain directory)
+- Separate toolkit repo dependency
 
 ## [0.1.3-security] - 2026-11-02
 

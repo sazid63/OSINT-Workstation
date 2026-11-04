@@ -1,0 +1,70 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "osint-workstation"
+version = "0.2.0"
+description = "Local-first OSINT workstation: CLI orchestrator + native services (SearXNG, SpiderFoot) + optional PySide6 desktop GUI (osint-toolkit) with AI agent, MCP server, tool catalog, and web UI."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Sajid Hossain" }]
+keywords = ["osint", "security", "reconnaissance", "cli", "gui", "education"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Environment :: X11 Applications :: Qt",
+  "Intended Audience :: Education",
+  "Intended Audience :: Information Technology",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: Microsoft :: Windows",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Security",
+  "Topic :: Internet :: WWW/HTTP :: Indexing/Search",
+]
+
+dependencies = [
+  "requests>=2.31",
+  "dnspython>=2.6",
+  "python-whois>=0.9",
+  "ipwhois>=1.2",
+  "pyyaml>=6.0",
+  "jinja2>=3.1",
+  "sherlock-project>=0.14",
+  "theHarvester>=4.0",
+  "keyring>=24.0",
+  "packaging>=23.0",
+  "phonenumbers>=8.13",
+]
+
+[project.optional-dependencies]
+gui = ["PySide6>=6.7"]
+mcp = ["mcp>=1.2"]
+dev = ["pytest>=8.0", "ruff>=0.5", "gitleaks-py>=0.1; platform_system=='Linux'"]
+
+[project.scripts]
+osint = "osint:main"
+osint-toolkit = "osint_toolkit.cli:main"
+osint-toolkit-mcp = "osint_toolkit.mcp.server:main"
+osint-toolkit-gui = "osint_toolkit.ui.app:main"
+
+[project.gui-scripts]
+osint-toolkit-gui = "osint_toolkit.ui.app:main"
+
+[project.urls]
+Homepage = "https://github.com/sazid63/OSINT-Workstation"
+Repository = "https://github.com/sazid63/OSINT-Workstation"
+Issues = "https://github.com/sazid63/OSINT-Workstation/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["core", "modules", "config", "osint_toolkit"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "osint_toolkit/tests"]

@@ -1,0 +1,18 @@
+id: archive_today
+name: archive.today
+category: Archive
+description: Look up a saved copy of a page on archive.today (manual, opens a website).
+how_to_use: |
+  1. Type the URL you want to look up.
+  2. Click Run — the page opens in your browser showing the newest snapshot.
+  3. This is a manual tool; the app simply opens the link for you.
+what_to_connect: []
+safety: passive
+license: Public data
+homepage: https://archive.ph
+inputs:
+  - name: target
+    label: URL
+    placeholder: example.com/page
+url: "https://archive.ph/newest/{target}"
+tags: [archive, manual]

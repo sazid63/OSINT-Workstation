@@ -1,0 +1,23 @@
+id: amass
+name: Amass (passive)
+category: Domain & DNS
+description: OWASP Amass passive subdomain enumeration and DNS mapping.
+how_to_use: |
+  1. Type a domain, for example example.com.
+  2. Click Run.
+  3. This uses Amass in passive mode - it only collects from public data
+     sources and does not touch the target's servers.
+what_to_connect:
+  - "Amass binary (auto-download available in Settings)"
+safety: passive
+license: Apache-2.0
+homepage: https://github.com/owasp-amass/amass
+inputs:
+  - name: target
+    label: Domain
+    placeholder: example.com
+command: ["amass", "enum", "-passive", "-d", "{target}", "-timeout", "2"]
+install:
+  method: binary
+  url: https://github.com/owasp-amass/amass/releases
+tags: [subdomains, domain, owasp]

@@ -1,0 +1,20 @@
+id: searxng
+name: SearXNG (self-hosted)
+category: Search Engines
+description: Meta-search through your own private SearXNG instance (opens in browser).
+how_to_use: |
+  1. Run a SearXNG instance locally first (see the settings in this app).
+  2. Type your query.
+  3. Click Run — the search opens in your browser on your private instance,
+     which keeps your searches out of big search engines' hands.
+what_to_connect:
+  - "A local SearXNG instance (default http://localhost:8888)"
+safety: passive
+license: AGPL-3.0
+homepage: https://docs.searxng.org
+inputs:
+  - name: target
+    label: Search query
+    placeholder: example topic
+url: "http://localhost:8888/search?q={target}"
+tags: [search, meta-search]

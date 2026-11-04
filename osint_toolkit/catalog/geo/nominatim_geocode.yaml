@@ -1,0 +1,19 @@
+id: nominatim_geocode
+name: Geocode (OpenStreetMap)
+category: Geospatial
+description: Convert a place name or address into coordinates using Nominatim.
+how_to_use: |
+  1. Type an address or place name.
+  2. Click Run.
+  3. You get matching places with latitude/longitude. Uses only
+     the public OpenStreetMap API.
+what_to_connect: []
+safety: passive
+license: ODbL (data) / public API
+homepage: https://nominatim.org
+inputs:
+  - name: target
+    label: Address or place
+    placeholder: Central Station, Berlin
+adapter: osint_toolkit.engine.collectors:nominatim_geocode
+tags: [geo, maps]

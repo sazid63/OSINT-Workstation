@@ -1,0 +1,19 @@
+id: rdap_lookup
+name: RDAP Lookup
+category: Domain & DNS
+description: Registration data from RDAP, the modern structured replacement for WHOIS.
+how_to_use: |
+  1. Type a domain, for example example.com.
+  2. Click Run.
+  3. RDAP returns structured JSON: status flags, events (registration, expiry)
+     and entities (registrar, contacts where published).
+what_to_connect: []
+safety: passive
+license: Public data
+homepage: https://rdap.org
+inputs:
+  - name: target
+    label: Domain
+    placeholder: example.com
+adapter: osint_toolkit.engine.collectors:rdap_lookup
+tags: [rdap, whois, domain]

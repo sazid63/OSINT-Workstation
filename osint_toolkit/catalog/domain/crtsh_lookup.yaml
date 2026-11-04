@@ -1,0 +1,19 @@
+id: crtsh_lookup
+name: Certificate Transparency (crt.sh)
+category: Domain & DNS
+description: Find subdomains that appear in public TLS certificate logs.
+how_to_use: |
+  1. Type a domain, for example example.com.
+  2. Click Run. This can take up to a minute for large domains.
+  3. Hostnames listed here were seen in public certificate transparency logs.
+     They are a strong hint at an organisation's real infrastructure.
+what_to_connect: []
+safety: passive
+license: Public data
+homepage: https://crt.sh
+inputs:
+  - name: target
+    label: Domain
+    placeholder: example.com
+adapter: osint_toolkit.engine.collectors:crtsh_lookup
+tags: [subdomains, certificates, domain]

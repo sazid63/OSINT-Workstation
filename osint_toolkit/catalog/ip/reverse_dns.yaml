@@ -1,0 +1,19 @@
+id: reverse_dns
+name: Reverse DNS (PTR)
+category: IP & Network
+description: Find the hostname associated with an IP address.
+how_to_use: |
+  1. Type an IP address, for example 8.8.8.8.
+  2. Click Run.
+  3. If a PTR record exists you will see the hostname; if not, the IP simply
+     has no reverse DNS configured.
+what_to_connect: []
+safety: passive
+license: Public data
+homepage: https://www.iana.org
+inputs:
+  - name: target
+    label: IP address
+    placeholder: 8.8.8.8
+adapter: osint_toolkit.engine.collectors:reverse_dns
+tags: [ip, dns]

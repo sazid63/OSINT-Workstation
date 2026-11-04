@@ -1,0 +1,23 @@
+id: maigret
+name: Maigret
+category: Username
+description: Search a username across 2000+ websites and group the results.
+how_to_use: |
+  1. Type a username, for example johndoe.
+  2. Click Run. Maigret checks thousands of sites; it can take a minute.
+  3. Results are ranked and grouped by site; examine suspicious matches
+     carefully - many are coincidental.
+what_to_connect:
+  - "Maigret (pip: maigret)"
+safety: passive
+license: MIT
+homepage: https://github.com/soxoj/maigret
+inputs:
+  - name: target
+    label: Username
+    placeholder: johndoe
+command: ["maigret", "{target}", "--no-recursion"]
+install:
+  method: pip
+  package: maigret
+tags: [username, social]

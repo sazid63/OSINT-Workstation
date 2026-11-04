@@ -1,0 +1,19 @@
+id: email_format
+name: Email Syntax Check
+category: Email
+description: Offline checks on an email address - format, MX, disposable domains.
+how_to_use: |
+  1. Type an email address, for example name@example.com.
+  2. Click Run.
+  3. You will see whether the format is valid, whether the domain is set up to
+     receive mail (MX record), and whether it is a known disposable domain.
+what_to_connect: []
+safety: passive
+license: MIT
+homepage: https://github.com/OSINT-Toolkit
+inputs:
+  - name: target
+    label: Email address
+    placeholder: name@example.com
+adapter: osint_toolkit.engine.collectors:email_format
+tags: [email]

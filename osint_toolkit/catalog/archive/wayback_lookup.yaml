@@ -1,0 +1,19 @@
+id: wayback_lookup
+name: Wayback Machine
+category: Archive
+description: Check whether the Internet Archive has snapshots of a URL or domain.
+how_to_use: |
+  1. Type a URL or domain, for example example.com.
+  2. Click Run.
+  3. If a snapshot exists you get a link to the closest archived copy — useful
+     for seeing a page as it used to be.
+what_to_connect: []
+safety: passive
+license: Public data
+homepage: https://web.archive.org
+inputs:
+  - name: target
+    label: URL or domain
+    placeholder: example.com
+adapter: osint_toolkit.engine.collectors:wayback_lookup
+tags: [archive, history]

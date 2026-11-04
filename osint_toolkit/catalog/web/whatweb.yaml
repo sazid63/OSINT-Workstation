@@ -1,0 +1,22 @@
+id: whatweb
+name: WhatWeb
+category: Web & URL
+description: Identify the technologies a website uses (CMS, frameworks, analytics).
+how_to_use: |
+  1. Type a URL or domain.
+  2. Click Run.
+  3. WhatWeb fingerprints the site's stack - server, CMS, JavaScript libraries.
+what_to_connect:
+  - "WhatWeb (github.com/urbanadventurer/WhatWeb)"
+safety: passive
+license: GPL-2.0
+homepage: https://github.com/urbanadventurer/WhatWeb
+inputs:
+  - name: target
+    label: URL or domain
+    placeholder: example.com
+command: ["whatweb", "{target}"]
+install:
+  method: binary
+  url: https://github.com/urbanadventurer/WhatWeb
+tags: [web, fingerprint]

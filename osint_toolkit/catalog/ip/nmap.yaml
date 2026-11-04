@@ -1,0 +1,25 @@
+id: nmap
+name: Nmap (service scan)
+category: IP & Network
+description: Port and service scan of a host you own or are authorized to test.
+how_to_use: |
+  1. Type a hostname or IP you OWN or have WRITTEN PERMISSION to scan.
+  2. Click Run. The scan may take a while.
+  3. Results list open ports and the services behind them.
+important: |
+  ACTIVE TOOL. Scanning systems you do not own or lack authorization for may be
+  illegal. You are solely responsible for your use.
+what_to_connect:
+  - "Nmap binary (auto-download available in Settings, or nmap.org)"
+safety: active
+license: NPSL / GPL-2.0
+homepage: https://nmap.org
+inputs:
+  - name: target
+    label: Host / IP
+    placeholder: scanme.nmap.org
+command: ["nmap", "-sV", "-Pn", "{target}"]
+install:
+  method: binary
+  url: https://nmap.org/download.html
+tags: [ports, active, network]
