@@ -198,3 +198,30 @@ def test_findings_json_roundtrips_non_latin(tmp_path, monkeypatch):
         payload = json.load(f)
     assert payload['findings'][0]['value'] == 'ঢাকা — 1.2.3.4'
     assert payload['meta']['authorized'] is True
+
+
+def test_next_steps_names_service_fix_for_down_search():
+    from core import orchestrator
+    steps = orchestrator.next_steps({'searxng': 'unreachable', 'dns': 'ok',
+                                     'whois': "error: No module named 'dns'"})
+    joined = '\n'.join(steps)
+    assert 'searxng not running' in joined and 'osint services up' in joined
+    assert 'whois failed' in joined and 'python-whois' in joined
+
+
+def test_next_steps_empty_when_all_sources_ok():
+    from core import orchestrator
+    assert orchestrator.next_steps({'dns': 'ok', 'whois': 'ok'}) == []
+
+
+def test_report_includes_next_steps(tmp_path, monkeypatch):
+    from core import report
+
+    monkeypatch.setattr(storage, 'INV', str(tmp_path))
+    meta = storage.create_investigation('acme.test', 'domain', ['searxng'], authorized=True)
+    reps = report.write_reports(meta, [], {'searxng': 'unreachable'}, [], [], {},
+                                next_steps=['- searxng not running → start it: osint services up'])
+    with open(reps['markdown'], encoding='utf-8') as f:
+        text = f.read()
+    assert 'Next steps to restore missing sources' in text
+    assert 'osint services up' in text

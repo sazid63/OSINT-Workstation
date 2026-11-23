@@ -119,7 +119,7 @@ DOCKER_SEARXNG_PORT = '8888:8080'
 
 
 def docker_available() -> bool:
-    """True when a Docker CLI is on PATH and the daemon answers."""
+    """True when a Docker CLI is on PATH AND the daemon answers."""
     if not shutil.which('docker'):
         return False
     try:
@@ -154,7 +154,7 @@ def _start_searxng_docker(wait=180):
                     'container': DOCKER_SEARXNG_NAME}
         time.sleep(2)
     return {'service': 'searxng', 'status': 'timeout', 'mode': 'docker',
-            'error': 'container started but the port never answered'})
+            'error': 'container started but the port never answered'}
 
 
 def _stop_searxng_docker():

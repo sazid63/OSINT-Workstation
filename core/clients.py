@@ -13,6 +13,11 @@ def searxng_search(base_url: str, query: str, timeout=20, categories='general', 
                         'content': res.get('content'), 'engine': res.get('engine'),
                         'source': 'searxng', 'confidence_class': 'DIRECTLY OBSERVED'})
         return {'status': 'ok', 'query': query, 'results': out}
+    except requests.exceptions.ConnectionError as e:
+        # The metasearch service is not running -- distinct from a query failure
+        # so the caller can tell the operator to start it.
+        return {'status': 'unreachable', 'query': query, 'results': [],
+                'error': f'SearXNG not reachable at {base_url}: {e}'}
     except Exception as e:
         return {'status': 'unavailable', 'query': query, 'results': [], 'error': str(e)}
 

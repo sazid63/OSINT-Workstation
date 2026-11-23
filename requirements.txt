@@ -1,18 +1,16 @@
-# Core dependencies — CLI + GUI + MCP
+# OSINT Workstation — runtime dependencies
+#
+# The `osint` CLI installs with just these. For the optional pieces:
+#   pip install -e ".[tools]"     # theHarvester + sherlock (subprocess binaries)
+#   pip install -e ".[gui]"       # osint-toolkit PySide6 desktop app
+#   pip install -e ".[mcp]"       # MCP server
+#   pip install -e ".[dev]"       # pytest + ruff
+#
+# Core (imported by core/ and modules/):
 requests>=2.31
+urllib3>=2.0
 dnspython>=2.6
 python-whois>=0.9
 ipwhois>=1.2
 pyyaml>=6.0
-jinja2>=3.1
-sherlock-project>=0.14
-theHarvester>=4.0
-keyring>=24.0
-packaging>=23.0
-phonenumbers>=8.13
-
-# GUI (PySide6)
-PySide6>=6.7
-
-# Optional: MCP server (expose tools to OpenCode and other MCP clients)
-mcp>=1.2
+Pillow>=10.0

@@ -6,6 +6,7 @@ it, instead of discovering it from a thin report.
 import importlib
 import os
 import shutil
+import subprocess
 import sys
 import urllib.request
 
@@ -18,17 +19,28 @@ REQUIRED_MODULES = [
     ('dns.resolver', 'pip install dnspython'),
     ('whois', 'pip install python-whois'),
     ('ipwhois', 'pip install ipwhois'),
+    ('PIL', 'pip install Pillow'),
 ]
 
 OPTIONAL_TOOLS = [
     ('exiftool', 'winget install -e --id OliverBetz.ExifTool'),
     ('nmap', 'winget install -e --id Insecure.Nmap'),
-    ('docker', 'https://docs.docker.com/get-docker/'),
+    ('docker', 'https://docs.docker.com/get-docker/  # must have docker daemon running'),
 ]
 
 
 def _entry(name, status, detail, fix=''):
     return {'name': name, 'status': status, 'detail': detail, 'fix': fix}
+
+
+def _docker_daemon_running() -> tuple:
+    if not shutil.which('docker'):
+        return False, 'docker CLI not on PATH'
+    try:
+        r = subprocess.run(['docker', 'info'], capture_output=True, text=True, timeout=20)
+        return r.returncode == 0, 'daemon running' if r.returncode == 0 else r.stderr.strip()[:100]
+    except Exception as e:
+        return False, type(e).__name__
 
 
 def _probe(url, timeout=3):
@@ -81,15 +93,20 @@ def run_checks(search_url='http://127.0.0.1:8888',
     ok, detail = _probe(search_url)
     checks.append(_entry(
         'searxng (search)', 'ok' if ok else 'fail',
-        f'{search_url} — {detail}',
+        f'{search_url} \u2014 {detail}',
         '' if ok else ('Start it: osint services up  (uses Docker if the native '
                        'source is not vendored)')))
 
     ok, detail = _probe(spiderfoot_url)
     checks.append(_entry(
         'spiderfoot (optional)', 'ok' if ok else 'warn',
-        f'{spiderfoot_url} — {detail}',
+        f'{spiderfoot_url} \u2014 {detail}',
         '' if ok else 'Optional: the CLI does not submit scans to it'))
+
+    ok, detail = _docker_daemon_running()
+    checks.append(_entry(
+        'docker daemon', 'ok' if ok else 'warn',
+        f'docker CLI: {detail}', '' if ok else 'Start Docker Desktop or docker service'))
 
     for tool, fix in OPTIONAL_TOOLS:
         found = shutil.which(tool)
@@ -102,7 +119,7 @@ _STATUS_LABEL = {'ok': 'OK  ', 'warn': 'WARN', 'fail': 'FAIL'}
 
 
 def format_report(checks) -> str:
-    lines = [f'OSINT Workstation {APP_VERSION} — preflight', '']
+    lines = [f'OSINT Workstation {APP_VERSION} \u2014 preflight', '']
     for c in checks:
         lines.append(f'  [{_STATUS_LABEL.get(c["status"], "?")}] {c["name"]:<24} {c["detail"]}')
         if c['fix'] and c['status'] != 'ok':

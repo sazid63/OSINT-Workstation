@@ -27,21 +27,23 @@ classifiers = [
 ]
 
 dependencies = [
+  # Runtime libraries the `osint` CLI actually imports (see tests/test_dependencies.py).
   "requests>=2.31",
+  "urllib3>=2.0",
   "dnspython>=2.6",
   "python-whois>=0.9",
   "ipwhois>=1.2",
   "pyyaml>=6.0",
-  "jinja2>=3.1",
-  "sherlock-project>=0.14",
-  "theHarvester>=4.0",
-  "keyring>=24.0",
-  "packaging>=23.0",
-  "phonenumbers>=8.13",
+  "Pillow>=10.0",
 ]
 
 [project.optional-dependencies]
-gui = ["PySide6>=6.7"]
+# External reconnaissance binaries are invoked via subprocess, not imported,
+# so they must NOT block installing the core CLI. Install with: pip install "osint-workstation[tools]"
+tools = ["theHarvester", "sherlock-project"]
+# osint-toolkit platform (CLI/MCP/GUI support libs; PySide6 pulls the full desktop app).
+toolkit = ["keyring>=24.0", "phonenumbers>=8.13"]
+gui = ["PySide6>=6.7", "keyring>=24.0", "phonenumbers>=8.13"]
 mcp = ["mcp>=1.2"]
 dev = ["pytest>=8.0", "ruff>=0.5", "gitleaks-py>=0.1; platform_system=='Linux'"]
 

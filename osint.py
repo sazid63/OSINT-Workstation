@@ -106,6 +106,10 @@ def cmd_investigate(target, deep=False, ai=False, target_type=None, authorized=F
           f"contradictions={len(r['contradictions'])}")
     for f in r['findings'][:25]:
         print(f"  [{f.get('level', f['class'])}] ({f['tool']}) {f['value'][:120]}")
+    if r.get('next_steps'):
+        print("\nmissing sources — to fix:")
+        for line in r['next_steps']:
+            print(' ', line)
     print(f"report: {r['reports']['markdown']}")
     return r
 

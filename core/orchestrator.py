@@ -80,14 +80,49 @@ EVIDENCE_URL = {
 }
 
 
+DEP_HINT = {
+    'dns': 'pip install dnspython',
+    'whois': 'pip install python-whois',
+    'ip': 'pip install ipwhois',
+    'metadata': 'pip install Pillow',
+    'harvester': 'pip install "osint-workstation[tools]" (theHarvester)',
+    'username': 'pip install "osint-workstation[tools]" (sherlock)',
+}
+
+
 def _status_of(data) -> str:
     if not isinstance(data, dict):
         return 'ok'
+    st = data.get('status')
+    if st in ('unreachable', 'unavailable'):
+        return st
     if data.get('error'):
         return 'error'
-    if data.get('status') == 'unavailable':
-        return 'unavailable'
     return 'ok'
+
+
+SERVICE_FIX = 'start it: `osint services up` (SearXNG), or run `osint doctor` to diagnose'
+
+
+def next_steps(status: dict) -> list:
+    """Turn raw per-source statuses into operator-facing next steps."""
+    hints = []
+    for tool, s in status.items():
+        if tool == 'spiderfoot' and s == 'probe-only':
+            continue
+        if s == 'ok':
+            continue
+        text = str(s)
+        if s == 'unreachable' or 'Max retries' in text or 'Refused' in text or 'name or service' in text:
+            hints.append(f'- {tool} not running → {SERVICE_FIX}')
+        elif s == 'unavailable':
+            hints.append(f'- {tool} unavailable (query/permission failed) — see report, section 14')
+        elif s == 'error' or text.startswith('error'):
+            hint = 'missing dependency → ' + DEP_HINT.get(tool, 'run `osint doctor`')
+            hints.append(f'- {tool} failed → {hint} (detail in report, section 14)')
+        else:
+            hints.append(f'- {tool}: {text}')
+    return hints
 
 
 def _collect_phase(plan: list, target: str, sources: dict, max_workers: int,
@@ -216,7 +251,8 @@ def investigate(target: str, max_workers: int = 8, deep: bool = False,
 
     gp = build_graph_json(meta['path'], target, relevant, entities)
     reps = write_reports(meta, relevant, status, entities, contradictions, raw,
-                         noise=noise, diagnostics=diagnostics)
+                         noise=noise, diagnostics=diagnostics,
+                         next_steps=next_steps(status))
     with open(os.path.join(meta['path'], 'logs', 'run.log'), 'w', encoding='utf-8') as f:
         f.write(f"target={target} type={ttype} inferred={not forced} deep={deep} "
                 f"plan={plan} status={status} findings={len(relevant)} "
@@ -237,7 +273,8 @@ def investigate(target: str, max_workers: int = 8, deep: bool = False,
     return {'meta': meta, 'type': ttype, 'type_inferred': not forced, 'type_note': note,
             'plan': plan, 'status': status, 'findings': relevant, 'noise': noise,
             'diagnostics': diagnostics, 'entities': entities,
-            'contradictions': contradictions, 'graph': gp, 'reports': reps}
+            'contradictions': contradictions, 'graph': gp, 'reports': reps,
+            'next_steps': next_steps(status)}
 
 
 def investigate_multi(targets: list, deep: bool = False, authorized: bool = False) -> dict:

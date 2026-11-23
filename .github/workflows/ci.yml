@@ -20,13 +20,13 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      # Only what the offline tests import: the collectors and the GUI are not
-      # exercised here, so PySide6 / theHarvester / sherlock are not installed.
+      # The offline tests import yaml + requests. The dependency-guard test reads
+      # pyproject.toml (stdlib tomllib on 3.11+), so no third-party deps needed.
       - name: Install test dependencies
         run: pip install pytest requests pyyaml
 
-      - name: Run offline tests
-        run: python -m pytest tests -q
+      - name: Run offline tests (pipeline, production, packaging guards)
+        run: python -m pytest tests/test_pipeline.py tests/test_production.py tests/test_dependencies.py -q
 
       - name: Verify the wheel ships the `osint` entry point module
         run: |

@@ -36,12 +36,14 @@ def build_graph_json(inv_path: str, target: str, findings: list, entities: list 
 
 def write_reports(meta: dict, findings: list, tool_status: dict, entities: list = None,
                   contradictions: list = None, raw: dict = None,
-                  noise: list = None, diagnostics: list = None) -> dict:
+                  noise: list = None, diagnostics: list = None,
+                  next_steps: list = None) -> dict:
     entities = entities or []
     contradictions = contradictions or []
     raw = raw or {}
     noise = noise or []
     diagnostics = diagnostics or []
+    next_steps = next_steps or []
     inv_path, target = meta['path'], meta['target']
     ts = datetime.datetime.now(datetime.timezone.utc).isoformat()
     for f in findings:
@@ -84,6 +86,9 @@ def write_reports(meta: dict, findings: list, tool_status: dict, entities: list 
     L += ["## 6. Sources failed"]
     L += ([f"- {t}: {s}" for t, s in failed.items()]
           or ["- (none — all attempted sources responded)"])
+    if next_steps:
+        L.append("### Next steps to restore missing sources")
+        L += next_steps
     L += [f"## 7. Findings ({len(findings)})"]
     for f in findings[:150]:
         extra_rel = '' if f.get('relevance', 'direct') == 'direct' else f", relevance {f.get('relevance')}"
