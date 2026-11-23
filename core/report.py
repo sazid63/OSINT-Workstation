@@ -63,9 +63,16 @@ def write_reports(meta: dict, findings: list, tool_status: dict, entities: list 
     type_line = f"- `{target}` (type: {meta['target_type']}, deep={meta.get('deep', False)})"
     if meta.get('type_inferred'):
         type_line += "  \n  ↳ **type was inferred, not supplied**"
+    operator = (meta.get('operator')
+                or os.environ.get('USERNAME') or os.environ.get('USER') or 'unknown')
+    auth = ('acknowledged (`--authorized`)' if meta.get('authorized')
+            else '**not recorded** — re-run with `--authorized` to attest a lawful basis')
     L = [f"# OSINT Report — {target}",
          "## 1. Investigation scope",
          "- Authorized starting clue only; no authentication bypass, no private access. Passive public sources.",
+         f"- Authorization: {auth}",
+         f"- Operator: `{operator}` · case: `{meta['id']}`",
+         "- Results are leads to verify, not conclusions. Absence of a finding is not evidence of absence.",
          "## 2. Starting clue", type_line]
     if meta.get('type_note'):
         L.append(f"- ⚠ {meta['type_note']}")

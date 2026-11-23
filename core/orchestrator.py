@@ -9,7 +9,8 @@ import socket
 import yaml
 
 from core.detect import detect_target, normalize_type, plan_for, type_note
-from core.storage import create_investigation, save_raw
+from core.storage import create_investigation, save_raw, data_dir
+from core import audit
 from core.clients import searxng_search, spiderfoot_status
 from core.process import (to_findings, dedupe, correlate, extract_entities,
                           detect_contradictions, level_of)
@@ -118,7 +119,7 @@ def _collect_phase(plan: list, target: str, sources: dict, max_workers: int,
 
 def investigate(target: str, max_workers: int = 8, deep: bool = False,
                 _extra_queries: list = None, target_type: str = None,
-                timeout: int = None) -> dict:
+                timeout: int = None, authorized: bool = False) -> dict:
     target = (target or '').strip()
     if not target:
         raise ValueError('empty target')
@@ -130,7 +131,15 @@ def investigate(target: str, max_workers: int = 8, deep: bool = False,
         plan = plan + [t for t in DEEP_EXTRA.get(ttype, []) if t not in plan]
     note = type_note(target, ttype, forced=forced)
     meta = create_investigation(target, ttype, plan, deep=deep,
-                                type_inferred=not forced, type_note=note)
+                                type_inferred=not forced, type_note=note,
+                                authorized=bool(authorized))
+    diagnostics = []
+    try:
+        audit.record(data_dir(), action='investigate', target=target, target_type=ttype,
+                     target_type_inferred=not forced, authorized=authorized,
+                     investigation_id=meta['id'])
+    except Exception as e:
+        diagnostics.append({'tool': 'audit', 'stage': 'audit', 'error': str(e)[:200]})
     raw, status = _collect_phase(plan, target, sources, max_workers,
                                  timeout or COLLECT_TIMEOUT)
     for tool in plan:
@@ -168,7 +177,7 @@ def investigate(target: str, max_workers: int = 8, deep: bool = False,
         save_raw(meta['id'], 'searxng_deep', raw['searxng_deep'])
         status['searxng_deep'] = 'ok'
 
-    findings, diagnostics = [], []
+    findings = []
     for tool, data in raw.items():
         if tool == 'spiderfoot':
             continue  # probe payload, never a finding
@@ -231,9 +240,9 @@ def investigate(target: str, max_workers: int = 8, deep: bool = False,
             'contradictions': contradictions, 'graph': gp, 'reports': reps}
 
 
-def investigate_multi(targets: list, deep: bool = False) -> dict:
+def investigate_multi(targets: list, deep: bool = False, authorized: bool = False) -> dict:
     """Combine multiple clues: separate investigations + shared-entity cross-correlation."""
-    runs = [investigate(t, deep=deep) for t in targets]
+    runs = [investigate(t, deep=deep, authorized=authorized) for t in targets]
     from collections import defaultdict
     by_ent = defaultdict(list)
     for r in runs:

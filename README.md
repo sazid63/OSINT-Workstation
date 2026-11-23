@@ -18,7 +18,44 @@
 - **Services** — native SearXNG (`:8888`) used as the metasearch source; SpiderFoot (`:5001`) managed as a local process and checked for liveness (not driven by the CLI pipeline)
 - **All local, keyless, privacy-first** — data never leaves your machine
 
-**Version:** v0.2.1 | **License:** MIT | **Python:** >= 3.11 | **Platform:** Windows 11 (primary)
+**Version:** v0.2.2 | **License:** MIT | **Python:** >= 3.11 | **Platform:** Windows 11 (primary)
+
+---
+## Production readiness (authorized use)
+
+OSINT Workstation is built for authorized, lawful investigations only —
+public-source reconnaissance on assets you own or are engaged to assess.
+
+- **Authorization gate.** `osint investigate` refuses to run without an
+  explicit acknowledgement of a lawful basis: `--authorized` or
+  `OSINT_AUTHORIZED=1`. Interactive mode asks "type 'yes'"; non-interactive
+  mode prints the refusal and exits non-zero.
+- **Audit trail.** Every run appends a JSONL record (`data_dir/audit.jsonl`)
+  documenting who ran what, when, from which host, targeting what, and whether
+  authorization was acknowledged. `osint audit [n]` shows the last `n`.
+- **Preflight doctor.** `osint doctor` verifies Python, dependencies,
+  data-directory writability, service liveness, and tool presence, with fix
+  instructions for each failure. Use it before trusting any report.
+- **Data outside the source tree.** Investigations live under
+  `OSINT_DATA_DIR` / `$LOCALAPPDATA/OSINT-Workstation` /
+  `$XDG_DATA_HOME/osint-workstation` / `~/.osint-workstation` — never inside
+  the package directory — so reports survive an upgrade.
+
+Usage:
+
+```bash
+# Verify the installation before trusting any output
+osint doctor
+
+# Run an investigation (attest a lawful basis)
+osint investigate --authorized example.com
+
+# See the last few runs
+osint audit
+
+# Print a stored report
+osint report 2026-11-24_example.com
+```
 
 ---
 

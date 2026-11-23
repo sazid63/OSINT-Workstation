@@ -5,6 +5,62 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] - 2026-11-24 (unreleased, on branch `fix/v0.2.1-release-blockers`)
+
+Production-readiness pass for authorized use. Nothing here changes the
+collection pipeline; everything here changes how the tool behaves when a real
+operator picks it up.
+
+### Added
+- **Authorization gate.** `osint investigate` now refuses to run without an
+  explicit acknowledgement of a lawful basis: `--authorized` on the command
+  line, or `OSINT_AUTHORIZED=1` in the environment. Interactive mode asks
+  "type 'yes'"; non-interactive mode prints the refusal and exits 3. The
+  acknowledgement is recorded in the audit trail and stated in the report.
+- **Audit trail** (`core/audit.py`). Append-only JSONL: who ran what, when,
+  on which machine, targeting what, with what type inference, and whether
+  authorization was acknowledged. `osint audit [n]` shows the last `n` records.
+- **Preflight doctor** (`core/doctor.py`). `osint doctor` reports Python,
+  dependencies, data-directory writability, SearXNG/SpiderFoot liveness,
+  and the presence of ExifTool/nmap/docker, with a fix line for each failure
+  and a non-zero exit when something blocks an investigation.
+- **`osint list`, `osint report <id>`, `osint graph <id>`, `osint audit`.**
+- **`core/version.py`** — single source of truth for the app version.
+
+### Fixed
+- **Fresh-clone SearXNG.** `tools/searxng` is gitignored and absent, so `osint
+  services up` failed on every new clone and there was no search source at all.
+  `services.start('searxng')` now falls back to the official Docker image when
+  the vendored source is missing, and prints a clear error when Docker is
+  unavailable too.
+- **Path traversal.** Investigation ids reached the filesystem directly
+  (`osint report ../../secret`). `storage.validate_inv_id()` now rejects
+  anything that is not a plain identifier; `inv_path()` validates before
+  joining. Menu and CLI both go through it.
+- **Data directory outside the source tree.** Investigations no longer write
+  into the installed package directory; they go to
+  `OSINT_DATA_DIR` / `$LOCALAPPDATA/OSINT-Workstation` /
+  `$XDG_DATA_HOME/osint-workstation` / `~/.osint-workstation`, so an upgrade
+  does not clobber reports and reports survive an uninstall.
+- **Report now states authorization.** The artifact records operator, case id,
+  and whether a lawful basis was acknowledged (`--authorized`), so a report
+  can be handed to someone else and still answers "was this authorized?".
+
+### Changed
+- `osint.py` rewritten as a real CLI: `--help`, `--version`, `osint doctor`,
+  `osint audit`, `osint list`, `osint report/graph <id>`, `osint services
+  [up|down|status|start <name>|stop <name>]`. The old menu is still reachable
+  with no arguments.
+- `orchestrator.investigate()` takes `authorized`; `investigate_multi()` too.
+- `storage.create_investigation()` accepts `**extra` (already did) and now
+  records `operator` and `authorized` via the same path.
+
+### Tests
+- `tests/test_production.py`: 30 offline tests for the authorization gate,
+  audit trail (append-only, corrupt-line tolerance, no truncation), id
+  validation and traversal rejection, data-dir placement, preflight doctor,
+  and authorization visibility in the report artifact.
+
 ## [0.2.1] - 2026-11-24
 
 Release-blocker pass. Focus: the tool now behaves the way the README says it does.

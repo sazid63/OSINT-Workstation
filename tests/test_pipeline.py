@@ -240,6 +240,9 @@ def test_investigate_end_to_end_offline(tmp_path, monkeypatch):
 
     monkeypatch.setattr(storage, 'INV', str(tmp_path))
     monkeypatch.setattr(orchestrator, 'load_sources', lambda: {})
+    # Keep the audit trail out of the developer's real data directory.
+    monkeypatch.setattr(orchestrator.audit, 'record',
+                        lambda *a, **k: str(tmp_path / 'audit.jsonl'))
 
     def fake_collect(tool, target, sources):
         if tool == 'searxng':
