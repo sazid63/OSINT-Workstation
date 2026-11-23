@@ -13,12 +13,12 @@
 
 **A unified local-first OSINT platform** — CLI orchestrator + optional PySide6 desktop GUI — for Windows 11 and also usable on Linux and macOS.
 
-- **CLI (`osint`)** — native pipeline: `TARGET → detect → plan → parallel collect → normalize → dedupe → correlate → confidence → graph → report`
+- **CLI (`osint`)** — native pipeline: `TARGET → detect → plan → parallel collect → normalize → dedupe → correlate → relevance → confidence → graph → report`
 - **GUI (`osint-toolkit-gui`)** — PySide6 desktop app with AI agent, MCP server, tool catalog, web UI, and safety guardrails
-- **Services** — native SearXNG (`:8888`) + SpiderFoot (`:5001`) managed as local processes
+- **Services** — native SearXNG (`:8888`) used as the metasearch source; SpiderFoot (`:5001`) managed as a local process and checked for liveness (not driven by the CLI pipeline)
 - **All local, keyless, privacy-first** — data never leaves your machine
 
-**Version:** v0.2.0 | **License:** MIT | **Python:** >= 3.11 | **Platform:** Windows 11 (primary)
+**Version:** v0.2.1 | **License:** MIT | **Python:** >= 3.11 | **Platform:** Windows 11 (primary)
 
 ---
 
@@ -26,13 +26,13 @@
 
 ```text
 ┌────────────────────────────────────────────────────────────────────┐
-│                        OSINT Workstation v0.2.0                   │
+│                        OSINT Workstation v0.2.1                   │
 ├──────────────────────────────┬────────────────────────────────────┤
 │          CLI (osint)        │          GUI (osint-toolkit)          │
 ├──────────────────────────────┼────────────────────────────────────┤
 │ Detect → Plan → Collect     │ Dashboard · Tools · Run · Results     │
 │ Normalize → Correlate       │ Assistant (AI agent) · Settings       │
-│ Graph → Report              │ MCP server · Web UI (FastAPI)         │
+│ Relevance → Graph → Report  │ MCP server · Web UI (FastAPI)         │
 └──────────────┬───────────────┴────────────────────────────────────┘
                │
        ┌───────┴───────┐
@@ -40,14 +40,15 @@
    ┌─────────┐    ┌─────────────┐
    │ SearXNG │    │ SpiderFoot  │
    │  :8888  │    │  :5001      │
-   │ native  │    │  native     │
+   │ source  │    │  liveness   │
+   │  (used) │    │  probe only │
    └─────────┘    └─────────────┘
 ```
 
 | Layer | Tool | Purpose |
 |-------|------|---------|
 | **Metasearch** | SearXNG (`:8888`) | Multi-engine aggregation, no API keys |
-| **Engine** | SpiderFoot (`:5001`) | Automated reconnaissance framework |
+| **Engine** | SpiderFoot (`:5001`) | Managed local process; CLI checks liveness only — no scan is submitted and no results are ingested |
 | **DNS/WHOIS** | Native Python | Direct resolver queries, free tier APIs |
 | **Certificates** | crt.sh + TLS handshake | Certificate transparency and live verification |
 | **IP Intelligence** | ipinfo.io, RIPEstat | Geo-IP and ASN lookup |
@@ -60,12 +61,14 @@
 ## Quick start
 
 ```bash
-# 1. Clone the repo with submodules
+# 1. Clone the repo
 git clone https://github.com/sazid63/OSINT-Workstation.git
 cd OSINT-Workstation
 
 # 2. Install dependencies
 pip install -r requirements.txt
+# ...or install the package itself to get the `osint` command on PATH:
+# pip install -e .
 
 # 3. Install ExifTool (one-time, requires admin)
 winget install --id OliverBetz.ExifTool -e -s winget
@@ -75,9 +78,16 @@ python osint.py services up
 
 # 5. Run your first investigation
 python osint.py investigate example.com
+#    or, if installed:  osint investigate example.com
 
 # 6. Or launch the GUI
 run_gui.bat
+```
+
+State the target type explicitly when the clue is a name rather than a domain:
+
+```bash
+osint investigate --type organization "Bangladesh Bank"
 ```
 
 Stop services when done:
@@ -92,40 +102,36 @@ python osint.py services down
 
 ```text
 OSINT-Workstation/
-├── .github/                  # CI workflows
-├── core/                     # CLI orchestrator
-├── analytic.py               # Local AI analysis (Ollama)
-├── clients.py                # HTTP clients for SearXNG/SpiderFoot
-├── detect.py                 # Target type detection and planning
-├── health.py                 # Source health monitoring
-├── http.py                   # Rate-limited HTTP with caching
-├── orchestrator.py            # Investigation pipeline
-├── process.py                # Normalization and correlation
-├── report.py                 # Report generation (MD/HTML/JSON)
-├── services.py               # Service manager (native, no Docker)
-├── storage.py                # Investigation storage
-├── modules/                  # Data collectors
-├── config/                  # Settings and source config
-├── sources.yaml              # Source registry
-├── source_health.json        # Last health check
-├── osint_toolkit/            # GUI package (folded in)
-├── ai/                       # AI agent and providers
-├── mcp/                      # MCP server
-├── ui/                       # PySide6 app (pages, themes, workers)
-├── web/                      # FastAPI web UI + MCP
-├── cli.py                    # Toolkit CLI entry point
-├── config.py                 # Toolkit config
-├── tools/                   # Vendored tools at runtime
-├── searchng/                 # Self-hosted SearXNG instance
-├── spiderfoot-src/           # SpiderFoot framework
-├── docs/                    # Extra docs (toolkit, security, limits)
-├── tests/                   # CLI tests
-├── osint.py                  # Main CLI entry point
+├── .github/workflows/        # CI: lint + tests on push/PR
+├── core/
+│   ├── orchestrator.py       # Investigation pipeline
+│   ├── detect.py             # Target type detection and planning
+│   ├── process.py            # Normalisation, dedupe, correlation, relevance, confidence
+│   ├── report.py             # Report generation (MD/HTML/JSON + graph)
+│   ├── storage.py            # Investigation storage layout
+│   ├── http.py               # Rate-limited HTTP with disk cache
+│   ├── clients.py            # SearXNG / SpiderFoot clients
+│   ├── health.py             # Source health monitoring
+│   ├── services.py           # Service manager (native, no Docker)
+│   └── analyst.py            # Local AI analysis (Ollama)
+├── modules/collectors.py     # Data collectors (DNS, WHOIS, cert, IP, URL, …)
+├── config/
+│   ├── settings.yaml         # Settings
+│   ├── sources.yaml          # Enabled sources and timeouts
+│   └── source_registry.yaml  # Candidate source registry
+├── osint_toolkit/            # GUI package (PySide6 app, AI agent, MCP, web UI)
+├── qa/                       # GUI smoke-test driver and screenshots helpers
+├── services/                 # SearXNG settings and limiter config
+├── secrets/                  # .env.example templates (no secrets committed)
+├── docs/                     # Toolkit README, security, Windows run notes
+├── tests/                    # Offline unit tests (pytest)
+├── osint.py                  # Main CLI entry point (`osint`)
+├── osint.bat                 # CLI wrapper
+├── pyproject.toml            # Packaging + entry points
 ├── requirements.txt          # All deps (CLI + GUI + MCP)
-├── run_cli.bat               # CLI launcher
-├── run_gui.bat               # GUI launcher
-├── LICENSE                   # MIT
-├── CHANGELOG.md              # Release history
+├── run_cli.bat / run_gui.bat / run_web.bat
+├── LICENSE
+└── CHANGELOG.md
 ```
 
 ---
@@ -143,8 +149,31 @@ OSINT-Workstation/
 |----------|---------|-------------|
 | `OSINT_HTTP_TIMEOUT` | 20 | HTTP request timeout in seconds |
 | `OSINT_DNS_LIFETIME` | 10 | DNS query lifetime in seconds |
+| `OSINT_CERT_TIMEOUT` | 10 | TLS handshake timeout for certificate checks |
 | `OSINT_SUBDOMAIN_LIMIT` | 200 | Max subdomains to collect |
+| `OSINT_HARVESTER_LIMIT` | 50 | Max results requested from theHarvester |
+| `OSINT_COLLECT_TIMEOUT` | 45 | Wall-clock budget for the parallel collection phase (whole phase, not per tool) |
 | `OLLAMA_URL` | `http://localhost:11434` | Ollama endpoint for AI analysis |
+
+---
+
+## Target types and confidence
+
+Supported target types are **domain, ip, email, username, url, organization**.
+There is no person target type: name-to-person resolution is out of scope for
+this pipeline. Multi-word input is inferred as `organization`, the report says
+so explicitly, and `--type` overrides the inference.
+
+Every finding carries two independent properties:
+
+- **class** — `FACT` / `DIRECTLY OBSERVED` / `CORRELATED` / `INFERRED` / `UNVERIFIED`
+- **relevance** — `direct` / `partial` / `none`, i.e. how tightly the record is tied to the target
+
+Confidence is the class strength scaled by relevance. Metasearch results that
+mention no target token are scored `0.0`, marked `UNVERIFIED`, and moved out of
+the findings list into a separate "excluded: unrelated search results" section
+(retained in `normalized/noise.json` for audit). Two unrelated hits agreeing
+with each other is not corroboration.
 
 ---
 
@@ -163,6 +192,7 @@ See `CHANGELOG.md` for full release details.
 
 ## Version history
 
+- **v0.2.1** (2026-11-24): Fixed the `osint` entry point (was a no-op and absent from the wheel), relevance-gated confidence for metasearch results, a real collection time budget, silent normalisation failures, UTF-8 output on non-Latin content, and stale packaging metadata; added offline test coverage for the pipeline
 - **v0.2.0** (2026-11-02): Unified repo merge with CLI + GUI folder into a single repo, Python project unification, submodule removal, docs consolidation
 - **v0.1.3-security** (2026-11-02): Security hardening with XSS, CSRF, timeouts, storage fix, Python 3
 - **v0.1.2-fixes** (2026-11-02): File handle leaks, resource management

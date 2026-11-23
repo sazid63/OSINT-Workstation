@@ -9,7 +9,7 @@ SUBDIRS = ['metadata', 'raw', 'normalized', 'sources', 'screenshots', 'graph', '
 def safe_name(target: str) -> str:
     return re.sub(r'[^A-Za-z0-9_.-]+', '_', target.strip())[:80]
 
-def create_investigation(target: str, target_type: str, plan: list) -> dict:
+def create_investigation(target: str, target_type: str, plan: list, **extra) -> dict:
     day = datetime.datetime.now().strftime('%Y-%m-%d')
     base = f"{day}_{safe_name(target)}"
     path = os.path.join(INV, base)
@@ -26,6 +26,7 @@ def create_investigation(target: str, target_type: str, plan: list) -> dict:
         'plan': plan, 'created_utc': datetime.datetime.now(datetime.timezone.utc).isoformat(),
         'path': final,
     }
+    meta.update(extra)
     with open(os.path.join(final, 'metadata', 'meta.json'), 'w', encoding='utf-8') as f:
         json.dump(meta, f, indent=2)
     return meta
