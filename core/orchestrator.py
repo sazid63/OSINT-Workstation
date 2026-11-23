@@ -1,9 +1,19 @@
-"""Orchestrator: TARGET -> detect -> plan -> parallel collect -> normalize -> dedupe -> correlate -> graph -> report."""
-import concurrent.futures, yaml, os
-from core.detect import detect_target, plan_for
-from core.storage import create_investigation, save_raw
+"""Orchestrator: TARGET -> detect -> plan -> parallel collect -> normalize -> dedupe
+-> correlate -> relevance -> graph -> report.
+"""
+import concurrent.futures
+import hashlib
+import json
+import os
+import socket
+import yaml
+
+from core.detect import detect_target, normalize_type, plan_for, type_note
+from core.storage import create_investigation, save_raw, data_dir
+from core import audit
 from core.clients import searxng_search, spiderfoot_status
-from core.process import to_findings, dedupe, correlate, extract_entities, detect_contradictions, level_of
+from core.process import (to_findings, dedupe, correlate, extract_entities,
+                          detect_contradictions, level_of)
 from core.report import build_graph_json, write_reports
 from modules.collectors import (mod_dns, mod_whois_rdap, mod_cert, mod_ip, mod_url, mod_email,
     mod_username, mod_theharvester, mod_urlscan, mod_ipinfo, mod_ripestat, mod_wikidata,
@@ -11,9 +21,16 @@ from modules.collectors import (mod_dns, mod_whois_rdap, mod_cert, mod_ip, mod_u
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+# Wall-clock budget for the parallel collection phase as a whole (not per tool).
+# Individual collectors also carry their own HTTP timeouts. Python cannot kill a
+# running thread, so a straggler is abandoned rather than interrupted.
+COLLECT_TIMEOUT = int(os.environ.get('OSINT_COLLECT_TIMEOUT', '45'))
+
+
 def load_sources():
-    with open(os.path.join(BASE, 'config', 'sources.yaml')) as f:
+    with open(os.path.join(BASE, 'config', 'sources.yaml'), encoding='utf-8') as f:
         return yaml.safe_load(f)
+
 
 def collect_one(tool: str, target: str, sources: dict):
     sx = (sources.get('searxng') or {}).get('url')
@@ -35,10 +52,13 @@ def collect_one(tool: str, target: str, sources: dict):
     if tool == 'nominatim': return mod_nominatim(target)
     if tool == 'steam': return mod_steam(target)
     if tool == 'spiderfoot':
+        # Liveness probe only. This pipeline does not submit scans to SpiderFoot
+        # or ingest its results; the probe just records whether it is running.
         sf = (sources.get('spiderfoot') or {}).get('url')
-        return {'note': 'SpiderFoot runs async via its web UI; orchestrator records its availability here.',
+        return {'note': 'liveness probe only — no scan submitted, no results ingested',
                 **spiderfoot_status(sf)}
     return {'error': f'unknown tool {tool}'}
+
 
 DEEP_EXTRA = {
     'domain':       ['ipinfo'],
@@ -59,62 +79,96 @@ EVIDENCE_URL = {
     'steam': 'https://steamcommunity.com', 'spiderfoot': 'http://localhost:5001',
 }
 
-def investigate(target: str, max_workers=8, deep: bool = False, _extra_queries: list = None) -> dict:
-    sources = load_sources()
-    ttype = detect_target(target)
-    plan = plan_for(ttype)
-    if deep:
-        plan = plan + [t for t in DEEP_EXTRA.get(ttype, []) if t not in plan]
-    meta = create_investigation(target, ttype, plan)
-    meta['deep'] = deep
+
+def _status_of(data) -> str:
+    if not isinstance(data, dict):
+        return 'ok'
+    if data.get('error'):
+        return 'error'
+    if data.get('status') == 'unavailable':
+        return 'unavailable'
+    return 'ok'
+
+
+def _collect_phase(plan: list, target: str, sources: dict, max_workers: int,
+                   timeout: int) -> tuple:
+    """Run collectors in parallel under a real wall-clock budget."""
     raw, status = {}, {}
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as ex:
+    ex = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers)
+    try:
         futs = {ex.submit(collect_one, t, target, sources): t for t in plan}
-        for fut in concurrent.futures.as_completed(futs):
+        done, not_done = concurrent.futures.wait(futs, timeout=timeout)
+        for fut in done:
             tool = futs[fut]
             try:
-                # Use a per-tool timeout to avoid hanging tasks (default 30s)
-                data = fut.result(timeout=30)
+                data = fut.result()
                 raw[tool] = data
-                if not isinstance(data, dict):
-                    # e.g. a bare list from a collector — treat as a value, not a status dict
-                    status[tool] = 'ok'
-                else:
-                    err = data.get('error')
-                    st = data.get('status')
-                    if err:
-                        status[tool] = 'error'
-                    elif st == 'unavailable':
-                        status[tool] = 'unavailable'
-                    else:
-                        status[tool] = 'ok'
-            except concurrent.futures.TimeoutError:
-                raw[tool] = {'error': 'timeout'}
-                status[tool] = 'error: timeout'
+                status[tool] = 'probe-only' if tool == 'spiderfoot' else _status_of(data)
             except Exception as e:
                 raw[tool] = {'error': str(e)[:300]}
                 status[tool] = f'error: {e}'[:200]
-            save_raw(meta['id'], tool, raw[tool])
-    # --- chaining (phase 2, legitimate depth): domain -> subdomains -> resolve; org -> wikidata/nominatim already in plan
+        for fut in not_done:
+            tool = futs[fut]
+            fut.cancel()
+            raw[tool] = {'error': f'collector exceeded the {timeout}s collection budget'}
+            status[tool] = 'error: timeout'
+    finally:
+        ex.shutdown(wait=False, cancel_futures=True)
+    return raw, status
+
+
+def investigate(target: str, max_workers: int = 8, deep: bool = False,
+                _extra_queries: list = None, target_type: str = None,
+                timeout: int = None, authorized: bool = False) -> dict:
+    target = (target or '').strip()
+    if not target:
+        raise ValueError('empty target')
+    sources = load_sources()
+    forced = target_type is not None
+    ttype = normalize_type(target_type) if forced else detect_target(target)
+    plan = plan_for(ttype)
+    if deep:
+        plan = plan + [t for t in DEEP_EXTRA.get(ttype, []) if t not in plan]
+    note = type_note(target, ttype, forced=forced)
+    meta = create_investigation(target, ttype, plan, deep=deep,
+                                type_inferred=not forced, type_note=note,
+                                authorized=bool(authorized))
+    diagnostics = []
+    try:
+        audit.record(data_dir(), action='investigate', target=target, target_type=ttype,
+                     target_type_inferred=not forced, authorized=authorized,
+                     investigation_id=meta['id'])
+    except Exception as e:
+        diagnostics.append({'tool': 'audit', 'stage': 'audit', 'error': str(e)[:200]})
+    raw, status = _collect_phase(plan, target, sources, max_workers,
+                                 timeout or COLLECT_TIMEOUT)
+    for tool in plan:
+        try:
+            save_raw(meta['id'], tool, raw.get(tool, {'error': 'no result'}))
+        except Exception as e:
+            status[tool] = f'error: raw save failed: {e}'[:200]
+
+    # --- chaining (phase 2): domain -> subdomains -> resolve
     chained = []
     if ttype in ('domain', 'url') and deep:
         subs = list({s for s in ((raw.get('cert') or {}).get('subdomains', []) +
                                  (raw.get('harvester') or {}).get('hosts', []))})[:15]
-        import socket
         for s in subs:
             try:
                 ips = socket.gethostbyname_ex(s)[2]
                 chained.append({'tool': 'chain_dns', 'value': f"{s} -> {', '.join(ips)}",
                                 'source': 'chained DNS resolution', 'class': 'FACT'})
-            except Exception as e:
+            except Exception:
                 chained.append({'tool': 'chain_dns', 'value': f"{s} unresolvable",
                                 'source': 'chained DNS resolution', 'class': 'UNVERIFIED'})
         save_raw(meta['id'], 'chain_dns', chained)
-    # --- extra SearXNG queries in deep mode (site: variants for org/domain)
+
+    # --- extra SearXNG queries in deep mode
     if deep and ttype in ('organization', 'domain'):
         sx = (sources.get('searxng') or {}).get('url')
-        extra = _extra_queries or ([f'site:gov.bd {target}', f'{target} tender notice'] if ttype == 'organization'
-                                   else [f'site:github.com {target}', f'"{target}"'])
+        extra = _extra_queries or (
+            [f'site:gov.bd {target}', f'{target} tender notice'] if ttype == 'organization'
+            else [f'site:github.com {target}', f'"{target}"'])
         more = []
         for q in extra[:3]:
             r = searxng_search(sx, q)
@@ -122,53 +176,73 @@ def investigate(target: str, max_workers=8, deep: bool = False, _extra_queries: 
         raw['searxng_deep'] = {'status': 'ok', 'results': more}
         save_raw(meta['id'], 'searxng_deep', raw['searxng_deep'])
         status['searxng_deep'] = 'ok'
+
     findings = []
     for tool, data in raw.items():
+        if tool == 'spiderfoot':
+            continue  # probe payload, never a finding
         try:
-            if tool == 'searxng_deep':
-                findings.extend(to_findings('searxng', data))
-            else:
-                findings.extend(to_findings(tool, data))
-        except Exception:
-            pass
-    findings.extend({**c, 'observed_utc': meta['created_utc']} for c in chained)
+            src_tool = 'searxng' if tool == 'searxng_deep' else tool
+            findings.extend(to_findings(src_tool, data, target=target))
+        except Exception as e:
+            diagnostics.append({'tool': tool, 'stage': 'normalize', 'error': str(e)[:300]})
+    findings.extend({**c, 'observed_utc': meta['created_utc'], 'relevance': 'direct'}
+                    for c in chained)
     findings = correlate(dedupe(findings))
-    # evidence enrichment: source URLs, method, confidence level
-    for f in findings:
+
+    # Unrelated search results are audit material, not findings.
+    relevant = [f for f in findings if f.get('relevance', 'direct') != 'none']
+    noise = [f for f in findings if f.get('relevance', 'direct') == 'none']
+    for f in relevant:
         f['level'] = level_of(f)
         ev = (raw.get(f['tool']) or {})
         f['evidence_url'] = ev.get('evidence_url') or f.get('source') or EVIDENCE_URL.get(f['tool'])
-        f['method'] = {'dns': 'direct DNS', 'whois': 'direct WHOIS/RDAP', 'cert': 'CT log + TLS handshake',
-                       'searxng': 'metasearch', 'harvester': 'passive aggregation',
+        f['method'] = {'dns': 'direct DNS', 'whois': 'direct WHOIS/RDAP',
+                       'cert': 'CT log + TLS handshake', 'searxng': 'metasearch',
+                       'harvester': 'passive aggregation',
                        'chain_dns': 'chained resolution'}.get(f['tool'], 'public API / HTTP')
-    entities = extract_entities(findings, target)
-    contradictions = detect_contradictions(raw, findings)
-    with open(os.path.join(meta['path'], 'normalized', 'findings.json'), 'w') as f:
-        import json; json.dump(findings, f, indent=2, default=str)
-    with open(os.path.join(meta['path'], 'normalized', 'entities.json'), 'w') as f:
-        import json; json.dump({'entities': entities, 'contradictions': contradictions}, f, indent=2, default=str)
-    gp = build_graph_json(meta['path'], target, findings, entities)
-    reps = write_reports(meta, findings, status, entities, contradictions, raw)
-    with open(os.path.join(meta['path'], 'logs', 'run.log'), 'w') as f:
-        f.write(f"target={target} type={ttype} deep={deep} plan={plan} status={status} findings={len(findings)} entities={len(entities)} contradictions={len(contradictions)}\n")
+
+    entities = extract_entities(relevant, target)
+    contradictions = detect_contradictions(raw, relevant)
+
+    normalized = os.path.join(meta['path'], 'normalized')
+    with open(os.path.join(normalized, 'findings.json'), 'w', encoding='utf-8') as f:
+        json.dump(relevant, f, indent=2, default=str)
+    with open(os.path.join(normalized, 'noise.json'), 'w', encoding='utf-8') as f:
+        json.dump(noise, f, indent=2, default=str)
+    with open(os.path.join(normalized, 'entities.json'), 'w', encoding='utf-8') as f:
+        json.dump({'entities': entities, 'contradictions': contradictions},
+                  f, indent=2, default=str)
+
+    gp = build_graph_json(meta['path'], target, relevant, entities)
+    reps = write_reports(meta, relevant, status, entities, contradictions, raw,
+                         noise=noise, diagnostics=diagnostics)
+    with open(os.path.join(meta['path'], 'logs', 'run.log'), 'w', encoding='utf-8') as f:
+        f.write(f"target={target} type={ttype} inferred={not forced} deep={deep} "
+                f"plan={plan} status={status} findings={len(relevant)} "
+                f"excluded_unrelated={len(noise)} entities={len(entities)} "
+                f"contradictions={len(contradictions)} diagnostics={len(diagnostics)}\n")
+
     # hash manifest for evidence integrity
-    import hashlib
     manifest = []
     for r, _, fs in os.walk(os.path.join(meta['path'], 'raw')):
         for fn in fs:
             p = os.path.join(r, fn)
             with open(p, 'rb') as f:
-                h = hashlib.sha256(f.read()).hexdigest()
-            manifest.append({'file': os.path.relpath(p, meta['path']), 'sha256': h})
-    with open(os.path.join(meta['path'], 'logs', 'manifest.json'), 'w') as f:
-        import json; json.dump(manifest, f, indent=2)
-    return {'meta': meta, 'type': ttype, 'plan': plan, 'status': status,
-            'findings': findings, 'entities': entities, 'contradictions': contradictions,
-            'graph': gp, 'reports': reps}
+                manifest.append({'file': os.path.relpath(p, meta['path']),
+                                 'sha256': hashlib.sha256(f.read()).hexdigest()})
+    with open(os.path.join(meta['path'], 'logs', 'manifest.json'), 'w', encoding='utf-8') as f:
+        json.dump(manifest, f, indent=2)
 
-def investigate_multi(targets: list, deep: bool = False) -> dict:
+    return {'meta': meta, 'type': ttype, 'type_inferred': not forced, 'type_note': note,
+            'plan': plan, 'status': status, 'findings': relevant, 'noise': noise,
+            'diagnostics': diagnostics, 'entities': entities,
+            'contradictions': contradictions, 'graph': gp, 'reports': reps}
+
+
+def investigate_multi(targets: list, deep: bool = False, authorized: bool = False) -> dict:
     """Combine multiple clues: separate investigations + shared-entity cross-correlation."""
-    runs = [investigate(t, deep=deep) for t in targets]
+    runs = [investigate(t, deep=deep, authorized=authorized) for t in targets]
     from collections import defaultdict
     by_ent = defaultdict(list)
     for r in runs:

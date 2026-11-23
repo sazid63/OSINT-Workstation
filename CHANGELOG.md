@@ -5,6 +5,119 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] - 2026-11-24 (unreleased, on branch `fix/v0.2.1-release-blockers`)
+
+Production-readiness pass for authorized use. Nothing here changes the
+collection pipeline; everything here changes how the tool behaves when a real
+operator picks it up.
+
+### Added
+- **Authorization gate.** `osint investigate` now refuses to run without an
+  explicit acknowledgement of a lawful basis: `--authorized` on the command
+  line, or `OSINT_AUTHORIZED=1` in the environment. Interactive mode asks
+  "type 'yes'"; non-interactive mode prints the refusal and exits 3. The
+  acknowledgement is recorded in the audit trail and stated in the report.
+- **Audit trail** (`core/audit.py`). Append-only JSONL: who ran what, when,
+  on which machine, targeting what, with what type inference, and whether
+  authorization was acknowledged. `osint audit [n]` shows the last `n` records.
+- **Preflight doctor** (`core/doctor.py`). `osint doctor` reports Python,
+  dependencies, data-directory writability, SearXNG/SpiderFoot liveness,
+  and the presence of ExifTool/nmap/docker, with a fix line for each failure
+  and a non-zero exit when something blocks an investigation.
+- **`osint list`, `osint report <id>`, `osint graph <id>`, `osint audit`.**
+- **`core/version.py`** — single source of truth for the app version.
+
+### Fixed
+- **Fresh-clone SearXNG.** `tools/searxng` is gitignored and absent, so `osint
+  services up` failed on every new clone and there was no search source at all.
+  `services.start('searxng')` now falls back to the official Docker image when
+  the vendored source is missing, and prints a clear error when Docker is
+  unavailable too.
+- **Path traversal.** Investigation ids reached the filesystem directly
+  (`osint report ../../secret`). `storage.validate_inv_id()` now rejects
+  anything that is not a plain identifier; `inv_path()` validates before
+  joining. Menu and CLI both go through it.
+- **Data directory outside the source tree.** Investigations no longer write
+  into the installed package directory; they go to
+  `OSINT_DATA_DIR` / `$LOCALAPPDATA/OSINT-Workstation` /
+  `$XDG_DATA_HOME/osint-workstation` / `~/.osint-workstation`, so an upgrade
+  does not clobber reports and reports survive an uninstall.
+- **Report now states authorization.** The artifact records operator, case id,
+  and whether a lawful basis was acknowledged (`--authorized`), so a report
+  can be handed to someone else and still answers "was this authorized?".
+
+### Changed
+- `osint.py` rewritten as a real CLI: `--help`, `--version`, `osint doctor`,
+  `osint audit`, `osint list`, `osint report/graph <id>`, `osint services
+  [up|down|status|start <name>|stop <name>]`. The old menu is still reachable
+  with no arguments.
+- `orchestrator.investigate()` takes `authorized`; `investigate_multi()` too.
+- `storage.create_investigation()` accepts `**extra` (already did) and now
+  records `operator` and `authorized` via the same path.
+
+### Tests
+- `tests/test_production.py`: 30 offline tests for the authorization gate,
+  audit trail (append-only, corrupt-line tolerance, no truncation), id
+  validation and traversal rejection, data-dir placement, preflight doctor,
+  and authorization visibility in the report artifact.
+
+## [0.2.1] - 2026-11-24
+
+Release-blocker pass. Focus: the tool now behaves the way the README says it does.
+
+### Fixed — Blockers
+- **`osint` console script was a no-op** — `osint.py:main()` parsed no arguments and
+  dispatched nothing (`sys.argv[1:] = sys.argv[1:]`, `return ... and None`). Argument
+  handling moved into `run(argv)` / `main(argv=None)`; `python -m` and the installed
+  script now behave identically, and errors exit non-zero.
+- **`osint.py` was missing from the wheel** — `[tool.hatch.build.targets.wheel]` listed
+  only packages, so `osint:main` was not importable after `pip install`. Switched to
+  `only-include` including `osint.py`; CI now asserts it is present in the built wheel.
+- **Confidence inflation on metasearch results** — every SearXNG hit was stamped
+  `DIRECTLY OBSERVED` and scored 0.8 ("MEDIUM CONFIDENCE") regardless of whether it
+  mentioned the target. Findings now carry an independent `relevance`
+  (`direct`/`partial`/`none`); unrelated hits are scored 0.0, marked `UNVERIFIED`, and
+  moved into a separate report section (`normalized/noise.json`) instead of the
+  findings list. `confidence_score()` scales class strength by relevance.
+- **The 30-second collector timeout never fired** — `fut.result(timeout=30)` ran after
+  `as_completed()` had already yielded a finished future, so one hung collector stalled
+  the whole run. Collection now runs under a real wall-clock budget
+  (`OSINT_COLLECT_TIMEOUT`, default 45s) via `concurrent.futures.wait`.
+- **Silent normalisation failures** — `except Exception: pass` around `to_findings()`
+  discarded a whole source's output with no trace. Failures are now recorded in
+  `diagnostics` and surfaced in the report's "Collection errors" section.
+- **UnicodeEncodeError on non-Latin findings (Windows)** — several writers used
+  `open(path, 'w')` without `encoding='utf-8'`. On a cp1252 host the first Bengali/CJK
+  character aborted the run at `findings.json`. All writers now pin UTF-8.
+
+### Fixed — Correctness
+- `detect_target()` no longer has a dead fall-through in the username branch; an
+  `@`-prefixed clue is always a username.
+- Multi-word targets are still inferred as `organization`, but the inference is now
+  recorded (`meta.type_inferred`) and stated in the report rather than passing
+  silently. New `--type` flag accepts `domain|ip|email|username|url|organization`.
+- `correlate()` now always records full provenance (`tools`, `sources`) instead of only
+  when promoting, and carries the weakest relevance of the merged group. Agreement
+  between two unrelated hits no longer promotes to `CORRELATED`.
+- `extract_entities()` placeholder-domain filter used `pass` where `continue` was
+  meant, so `example.*` and short strings were never skipped.
+- SpiderFoot results are a liveness probe, never a finding; the probe payload no longer
+  pollutes the findings list, and it is reported separately from successful sources.
+
+### Changed
+- `pyproject.toml`: version 0.2.1; pytest `testpaths` no longer points at a
+  nonexistent `osint_toolkit/tests`; added sdist include list.
+- README corrected: SpiderFoot's real role, `core/analyst.py` (was `analytic.py`),
+  accurate project tree, `--type` usage, confidence semantics, `OSINT_COLLECT_TIMEOUT`
+  and the other configurable env vars.
+- Added `.github/workflows/ci.yml` — offline tests on 3.11/3.12/3.13 plus a wheel
+  content assertion.
+
+### Added
+- `tests/test_pipeline.py` — 28 offline tests covering target typing, relevance
+  gating, confidence blending, dedupe/correlate provenance, entity extraction, UTF-8
+  report output, noise separation, and the collection budget.
+
 ## [0.2.0] - 2026-11-04
 
 ### Added — Repo Unification (Major)

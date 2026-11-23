@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "osint-workstation"
-version = "0.2.0"
+version = "0.2.1"
 description = "Local-first OSINT workstation: CLI orchestrator + native services (SearXNG, SpiderFoot) + optional PySide6 desktop GUI (osint-toolkit) with AI agent, MCP server, tool catalog, and web UI."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -60,11 +60,17 @@ Repository = "https://github.com/sazid63/OSINT-Workstation"
 Issues = "https://github.com/sazid63/OSINT-Workstation/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["core", "modules", "config", "osint_toolkit"]
+# `osint.py` is the module behind the `osint` console script; it must ship in the
+# wheel or the entry point fails to import after `pip install`.
+only-include = ["osint.py", "core", "modules", "config", "osint_toolkit"]
+
+[tool.hatch.build.targets.sdist]
+include = ["/osint.py", "/core", "/modules", "/config", "/osint_toolkit",
+           "/tests", "/README.md", "/CHANGELOG.md", "/pyproject.toml"]
 
 [tool.ruff]
 line-length = 100
 target-version = "py311"
 
 [tool.pytest.ini_options]
-testpaths = ["tests", "osint_toolkit/tests"]
+testpaths = ["tests"]

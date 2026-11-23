@@ -10,6 +10,7 @@ All paths are project-relative — the operation lives entirely under the repo.
 import ctypes
 import json
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -112,6 +113,55 @@ def _probe(url, timeout=3):
         return False
 
 
+DOCKER_SEARXNG_NAME = 'osint-workstation-searxng'
+DOCKER_SEARXNG_IMAGE = 'searxng/searxng:latest'
+DOCKER_SEARXNG_PORT = '8888:8080'
+
+
+def docker_available() -> bool:
+    """True when a Docker CLI is on PATH and the daemon answers."""
+    if not shutil.which('docker'):
+        return False
+    try:
+        return subprocess.run(['docker', 'info'], capture_output=True,
+                              timeout=20).returncode == 0
+    except Exception:
+        return False
+
+
+def _start_searxng_docker(wait=180):
+    """Run SearXNG from the official image. Used when tools/searxng is absent."""
+    try:
+        subprocess.run(['docker', 'rm', '-f', DOCKER_SEARXNG_NAME],
+                       capture_output=True, timeout=60)
+        r = subprocess.run(
+            ['docker', 'run', '-d', '--rm', '--name', DOCKER_SEARXNG_NAME,
+             '-p', DOCKER_SEARXNG_PORT, DOCKER_SEARXNG_IMAGE],
+            capture_output=True, text=True, timeout=600)
+    except Exception as e:
+        return {'service': 'searxng', 'status': 'error',
+                'error': f'docker run failed: {e}'[:300]}
+    if r.returncode != 0:
+        return {'service': 'searxng', 'status': 'error',
+                'error': (r.stderr or r.stdout).strip()[:300]}
+    deadline = time.time() + wait
+    while time.time() < deadline:
+        if _probe(SERVICES['searxng']['url']):
+            state = _load_state()
+            state['searxng'] = {'mode': 'docker', 'container': DOCKER_SEARXNG_NAME}
+            _save_state(state)
+            return {'service': 'searxng', 'status': 'running', 'mode': 'docker',
+                    'container': DOCKER_SEARXNG_NAME}
+        time.sleep(2)
+    return {'service': 'searxng', 'status': 'timeout', 'mode': 'docker',
+            'error': 'container started but the port never answered'})
+
+
+def _stop_searxng_docker():
+    subprocess.run(['docker', 'rm', '-f', DOCKER_SEARXNG_NAME],
+                   capture_output=True, timeout=120)
+
+
 def status():
     """Return {'searxng': 'running'|'stopped', 'spiderfoot': ...}."""
     state = _load_state()
@@ -136,6 +186,17 @@ def start(name, wait=45):
     cfg = SERVICES[name]
     if _probe(cfg['url']):
         return {'service': name, 'status': 'already-running'}
+
+    # SearXNG has no vendored source in a fresh clone. Fall back to the
+    # official container image rather than failing with "source missing".
+    if name == 'searxng' and not os.path.isdir(cfg['cwd']):
+        if docker_available():
+            return _start_searxng_docker()
+        return {'service': name, 'status': 'error', 'error': (
+            f'SearXNG source not vendored ({cfg["cwd"]}) and Docker is unavailable. '
+            'Either run: docker run -d --rm --name '
+            f'{DOCKER_SEARXNG_NAME} -p {DOCKER_SEARXNG_PORT} {DOCKER_SEARXNG_IMAGE}  '
+            'or vendor SearXNG into tools/searxng.')}
 
     if not os.path.exists(cfg['python']):
         return {'service': name, 'status': 'error',
@@ -176,6 +237,11 @@ def stop(name):
     """Stop a service we started (kills listener PID + its tree)."""
     cfg = SERVICES[name]
     state = _load_state()
+    if state.get(name, {}).get('mode') == 'docker':
+        _stop_searxng_docker()
+        state.pop(name, None)
+        _save_state(state)
+        return {'service': name, 'status': 'stopped', 'mode': 'docker'}
     pid = state.get(name, {}).get('pid') or _listener_pid(cfg['port'])
     killed = []
     if pid and _alive(pid):

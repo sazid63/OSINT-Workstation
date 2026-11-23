@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # Only what the offline tests import: the collectors and the GUI are not
+      # exercised here, so PySide6 / theHarvester / sherlock are not installed.
+      - name: Install test dependencies
+        run: pip install pytest requests pyyaml
+
+      - name: Run offline tests
+        run: python -m pytest tests -q
+
+      - name: Verify the wheel ships the `osint` entry point module
+        run: |
+          pip install hatchling
+          python -m hatchling build -t wheel
+          python - <<'PY'
+          import glob, zipfile
+          wheel = sorted(glob.glob("dist/*.whl"))[-1]
+          names = zipfile.ZipFile(wheel).namelist()
+          assert "osint.py" in names, f"osint.py missing from {wheel}"
+          print(f"{wheel} contains osint.py")
+          PY
